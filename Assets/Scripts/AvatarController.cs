@@ -5,19 +5,26 @@ using omicronConnector;
 
 public class AvatarController : OmicronEventClient {
 
-	public GameObject leftHand, rightHand, leftElbow, rightElbow;
+	public GameObject kinect;
+
+	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow;
 
 	public enum KinectHandState { Unknown, NotTracked, Open, Closed, Lasso };
 
-	KinectHandState leftHandState, rightHandState;
+	private Vector3 kinectPosition;
+
+	private KinectHandState leftHandState, rightHandState;
+
+	void Start() {
+		kinectPosition = kinect.transform.position;
+	}
 
 	//Fetch data gathered from Kinect
 	void OnEvent(EventData e) {
 		if (e.serviceType == EventBase.ServiceType.ServiceTypeMocap) {
 
-			//Update hands position and state
-			UpdateHandsPosition(e);
-			//UpdateJointsPosition(e);
+			//Update joints position and state
+			UpdateJointsPosition(e);
 
 		}
 	}
@@ -42,27 +49,24 @@ public class AvatarController : OmicronEventClient {
 		default: return KinectHandState.Unknown;
 		}
 	}
-	
-	private void UpdateHandsPosition(EventData e) {
-		//Left
-		Vector3 leftHandPosition = GetJointPosition(e, 9);
-		if(!leftHandPosition.Equals(Vector3.zero)) {
-			leftHand.transform.position = new Vector3(leftHandPosition.x, leftHandPosition.y, leftHand.transform.position.z);
-		}
-		leftHandState = FetchHandState(e.orw);
-
-		//Right
-		Vector3 rightHandPosition = GetJointPosition(e, 19);
-		if(!rightHandPosition.Equals(Vector3.zero)) {
-			rightHand.transform.position = new Vector3(rightHandPosition.x, rightHandPosition.y, rightHand.transform.position.z);
-		}
-		rightHandState = FetchHandState(e.orx);
-	}
 
 	private void UpdateJointsPosition(EventData e) {
-		Vector3 leftElbowPosition = GetJointPosition(e, 7);
-		leftElbow.transform.position = new Vector3 (leftElbowPosition.x, leftElbowPosition.y, leftElbow.transform.position.z);
-		Vector3 rightElbowPosition = GetJointPosition(e, 17);
-		rightElbow.transform.position = new Vector3 (rightElbowPosition.x, rightElbowPosition.y, rightElbow.transform.position.z);
+
+		UpdateJointPosition (hips, e, 0);
+		UpdateJointPosition (leftElbow, e, 7);
+		UpdateJointPosition (rightElbow, e, 17);
+
+		UpdateJointPosition (leftHand, e, 9);
+		UpdateJointPosition (rightHand, e, 19);
+		leftHandState = FetchHandState(e.orw);
+		rightHandState = FetchHandState(e.orx);
+
+	}
+
+	private void UpdateJointPosition(GameObject joint, EventData e, int jointId) {
+		Vector3 newPosition = GetJointPosition(e, jointId);
+		if(!newPosition.Equals(Vector3.zero)) {
+			joint.transform.position = newPosition + kinectPosition;
+		}
 	}
 }
