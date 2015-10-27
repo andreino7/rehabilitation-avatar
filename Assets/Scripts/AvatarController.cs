@@ -17,6 +17,8 @@ public class AvatarController : OmicronEventClient {
 
 	void Start() {
 		kinectPosition = kinect.transform.position;
+		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
+		omicronManager.AddClient(this);
 	}
 
 	//Fetch data gathered from Kinect
