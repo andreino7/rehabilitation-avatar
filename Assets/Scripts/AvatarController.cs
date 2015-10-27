@@ -5,7 +5,7 @@ using omicronConnector;
 
 public class AvatarController : OmicronEventClient {
 
-	public GameObject leftHand, rightHand;
+	public GameObject leftHand, rightHand, leftElbow, rightElbow;
 
 	public enum KinectHandState { Unknown, NotTracked, Open, Closed, Lasso };
 
@@ -17,6 +17,7 @@ public class AvatarController : OmicronEventClient {
 
 			//Update hands position and state
 			UpdateHandsPosition(e);
+			//UpdateJointsPosition(e);
 
 		}
 	}
@@ -46,15 +47,22 @@ public class AvatarController : OmicronEventClient {
 		//Left
 		Vector3 leftHandPosition = GetJointPosition(e, 9);
 		if(!leftHandPosition.Equals(Vector3.zero)) {
-			leftHand.transform.localPosition = leftHandPosition;
+			leftHand.transform.position = new Vector3(leftHandPosition.x, leftHandPosition.y, leftHand.transform.position.z);
 		}
 		leftHandState = FetchHandState(e.orw);
 
 		//Right
 		Vector3 rightHandPosition = GetJointPosition(e, 19);
 		if(!rightHandPosition.Equals(Vector3.zero)) {
-			rightHand.transform.localPosition = rightHandPosition;
+			rightHand.transform.position = new Vector3(rightHandPosition.x, rightHandPosition.y, rightHand.transform.position.z);
 		}
 		rightHandState = FetchHandState(e.orx);
+	}
+
+	private void UpdateJointsPosition(EventData e) {
+		Vector3 leftElbowPosition = GetJointPosition(e, 7);
+		leftElbow.transform.position = new Vector3 (leftElbowPosition.x, leftElbowPosition.y, leftElbow.transform.position.z);
+		Vector3 rightElbowPosition = GetJointPosition(e, 17);
+		rightElbow.transform.position = new Vector3 (rightElbowPosition.x, rightElbowPosition.y, rightElbow.transform.position.z);
 	}
 }
