@@ -5,7 +5,7 @@ public class VirtualObject : MonoBehaviour {
 
 	public Material defaultMaterial, triggerMaterial;
 	public GameObject animationVfx;
-
+	private GameObject instntiadeAnimationVfx;
 	private float animationTime = 1.4f;
 	private float scaleMultiplier = 3f;
 	private Vector3 originalScale;
@@ -32,7 +32,7 @@ public class VirtualObject : MonoBehaviour {
 		GetComponent<AudioSource> ().Play ();
 		StartCoroutine (ObjectCaughtCoroutine());
 		isCaught = true;
-		GameObject.Instantiate (animationVfx, transform.position, Quaternion.identity);
+		instntiadeAnimationVfx = (GameObject) GameObject.Instantiate (animationVfx, transform.position, Quaternion.identity);
 	}
 
 	IEnumerator ObjectCaughtCoroutine() {
@@ -53,5 +53,7 @@ public class VirtualObject : MonoBehaviour {
 			yield return null;
 		}
 		Destroy (gameObject);
+		Destroy (instntiadeAnimationVfx);
+		ObjectGenerator.GetInstance().CreateNewObject();
 	}
 }
