@@ -5,7 +5,6 @@ public class VirtualObject : MonoBehaviour {
 
 	public Material defaultMaterial, triggerMaterial;
 	public GameObject animationVfx;
-	private GameObject instntiadeAnimationVfx;
 	private float animationTime = 1.4f;
 	private float scaleMultiplier = 3f;
 	private Vector3 originalScale;
@@ -17,22 +16,28 @@ public class VirtualObject : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider other) {
-		Debug.Log ("Object reached!!");
-		Invoke ("ObjectCaught", 2f);
-		GetComponent<Renderer> ().material = triggerMaterial;
+		if (!isCaught) {
+			Debug.Log ("Object reached!!");
+			Invoke ("ObjectCaught", 2f);
+			GetComponent<Renderer> ().material = triggerMaterial;
+		}
 	}
 
 	void OnTriggerExit(Collider other) {
-		if(!isCaught) GetComponent<Renderer> ().material = defaultMaterial;
-		CancelInvoke ();	
+		if (!isCaught) {
+			GetComponent<Renderer> ().material = defaultMaterial;
+		}
+		CancelInvoke ();
 	}
 
 	void ObjectCaught() {
-		Debug.Log ("Object caught!!");
-		GetComponent<AudioSource> ().Play ();
-		StartCoroutine (ObjectCaughtCoroutine());
-		isCaught = true;
-		instntiadeAnimationVfx = (GameObject) GameObject.Instantiate (animationVfx, transform.position, Quaternion.identity);
+		if (!isCaught) {
+			Debug.Log ("Object caught!!");
+			GetComponent<AudioSource> ().Play ();
+			StartCoroutine (ObjectCaughtCoroutine ());
+			isCaught = true;
+			GameObject.Instantiate (animationVfx, transform.position, Quaternion.identity);
+		}
 	}
 
 	IEnumerator ObjectCaughtCoroutine() {
@@ -52,8 +57,7 @@ public class VirtualObject : MonoBehaviour {
 				Mathf.Lerp(scaleMultiplier * originalScale.z, 0f, (Time.time - startTime) / (animationTime / 2f)));
 			yield return null;
 		}
-		Destroy (gameObject);
-		Destroy (instntiadeAnimationVfx);
 		ObjectGenerator.GetInstance().CreateNewObject();
+		Destroy (gameObject);
 	}
 }
