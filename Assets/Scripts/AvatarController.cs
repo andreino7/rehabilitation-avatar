@@ -5,6 +5,8 @@ using omicronConnector;
 
 public class AvatarController : OmicronEventClient {
 
+	public float yOffset = 0;
+
 	public GameObject kinect;
 
 	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow;
@@ -15,8 +17,11 @@ public class AvatarController : OmicronEventClient {
 
 	private KinectHandState leftHandState, rightHandState;
 
+	private Animator animator;
+
 	void Start() {
 		kinectPosition = kinect.transform.position;
+		animator = GetComponent<Animator> ();
 		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
 		omicronManager.AddClient(this);
 	}
@@ -26,7 +31,7 @@ public class AvatarController : OmicronEventClient {
 		if (e.serviceType == EventBase.ServiceType.ServiceTypeMocap) {
 
 			//Update joints position and state
-			UpdateJointsPosition(e);
+			//UpdateJointsPosition(e);
 
 		}
 	}
@@ -51,7 +56,17 @@ public class AvatarController : OmicronEventClient {
 		default: return KinectHandState.Unknown;
 		}
 	}
+	/*
+	void OnAnimatorIK() {
 
+		animator.SetLookAtWeight(1);
+		animator.SetLookAtPosition(rightHand.transform.position);
+		animator.SetIKPositionWeight(AvatarIKGoal.RightHand,1);
+		animator.SetIKRotationWeight(AvatarIKGoal.RightHand,1);  
+		animator.SetIKPosition(AvatarIKGoal.RightHand,rightHand.transform.position);
+		animator.SetIKRotation(AvatarIKGoal.RightHand,rightHand.transform.rotation);
+	}
+	*/
 	private void UpdateJointsPosition(EventData e) {
 
 		UpdateJointPosition (hips, e, 0);
@@ -65,10 +80,11 @@ public class AvatarController : OmicronEventClient {
 
 	}
 
+
 	private void UpdateJointPosition(GameObject joint, EventData e, int jointId) {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.position = newPosition + kinectPosition;
+			joint.transform.position = newPosition + kinectPosition + new Vector3(0f,yOffset,0f);
 		}
 	}
 }

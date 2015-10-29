@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 11bbb4cd70d939b489d33d0c894c12ee
-timeCreated: 1445894135
+timeCreated: 1446137223
 licenseType: Free
 ModelImporter:
   serializedVersion: 18
@@ -171,6 +171,22 @@ ModelImporter:
     400160: uplid.R
     400162: upper_arm.L
     400164: upper_arm.R
+    2300000: eyebrow001Mesh
+    2300002: high-polyMesh
+    2300004: jeans01Mesh
+    2300006: mhair02Mesh
+    2300008: pythonMesh
+    2300010: shoes02Mesh
+    2300012: teeth_baseMesh
+    2300014: tshirt_shortMesh
+    3300000: eyebrow001Mesh
+    3300002: high-polyMesh
+    3300004: jeans01Mesh
+    3300006: mhair02Mesh
+    3300008: pythonMesh
+    3300010: shoes02Mesh
+    3300012: teeth_baseMesh
+    3300014: tshirt_shortMesh
     4300000: pythonMesh
     4300002: mhair02Mesh
     4300004: high-polyMesh
@@ -201,7 +217,7 @@ ModelImporter:
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
-    animationCompression: 1
+    animationCompression: 3
     animationRotationError: .5
     animationPositionError: .5
     animationScaleError: .5
@@ -231,7 +247,7 @@ ModelImporter:
     splitTangentsAcrossUV: 1
     normalImportMode: 0
     tangentImportMode: 1
-  importAnimation: 1
+  importAnimation: 0
   copyAvatar: 0
   humanDescription:
     human: []
@@ -243,7 +259,7 @@ ModelImporter:
     armStretch: .0500000007
     legStretch: .0500000007
     feetSpacing: 0
-    rootMotionBoneName: 
+    rootMotionBoneName: python
   lastHumanDescriptionAvatarSource: {instanceID: 0}
   animationType: 2
   additionalBone: 0
