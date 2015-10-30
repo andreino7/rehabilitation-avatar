@@ -1,0 +1,18 @@
+10/30
+- Create avatar and configure skeleton (2h)
+- Remap wrong joint incoming information from Kinect (2h)
+
+11/2
+- Add sounds to objects + change trigger color (1h)
+- Make object animation when caught (size + particle effect) (1h)
+
+11/4
+- Configure connection to server through Omicron (5h)
+- Create basics for intro and ending scenes (2h)
+
+11/5
+- Unity - CAVE2 software + hardware reconfiguration (3h)
+
+11/7
+- Add final animation and sounds when training ends (1h)
+- Store joints positions in json file (3h)
