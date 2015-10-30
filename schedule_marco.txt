@@ -10,7 +10,7 @@
 - Configure connection to server through Omicron (5h)
 - Create basics for intro and ending scenes (2h)
 
-11/5
+11/5 by 3pm
 - Unity - CAVE2 software + hardware reconfiguration (3h)
 
 11/7
