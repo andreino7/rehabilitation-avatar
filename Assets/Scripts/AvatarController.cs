@@ -9,6 +9,9 @@ public class AvatarController : OmicronEventClient {
 
 	public GameObject kinect;
 
+	public bool useIK = false;
+	public Transform objectToReach;
+
 	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow;
 
 	public enum KinectHandState { Unknown, NotTracked, Open, Closed, Lasso };
@@ -31,7 +34,7 @@ public class AvatarController : OmicronEventClient {
 		if (e.serviceType == EventBase.ServiceType.ServiceTypeMocap) {
 
 			//Update joints position and state
-			//UpdateJointsPosition(e);
+			UpdateJointsPosition(e);
 
 		}
 	}
@@ -56,20 +59,22 @@ public class AvatarController : OmicronEventClient {
 		default: return KinectHandState.Unknown;
 		}
 	}
-	/*
-	void OnAnimatorIK() {
 
-		animator.SetLookAtWeight(1);
-		animator.SetLookAtPosition(rightHand.transform.position);
-		animator.SetIKPositionWeight(AvatarIKGoal.RightHand,1);
-		animator.SetIKRotationWeight(AvatarIKGoal.RightHand,1);  
-		animator.SetIKPosition(AvatarIKGoal.RightHand,rightHand.transform.position);
-		animator.SetIKRotation(AvatarIKGoal.RightHand,rightHand.transform.rotation);
+
+	void OnAnimatorIK() {
+		if (useIK) {
+			//animator.SetLookAtWeight (1);
+			//animator.SetLookAtPosition (rightHand.transform.position);
+			animator.SetIKPositionWeight (AvatarIKGoal.RightHand, 1);
+			animator.SetIKRotationWeight (AvatarIKGoal.RightHand, 1);  
+			animator.SetIKPosition (AvatarIKGoal.RightHand, objectToReach.position);
+			animator.SetIKRotation (AvatarIKGoal.RightHand, objectToReach.rotation);
+		}
 	}
-	*/
+
 	private void UpdateJointsPosition(EventData e) {
 
-		UpdateJointPosition (hips, e, 0);
+		//UpdateJointPosition (hips, e, 0);
 		UpdateJointPosition (leftElbow, e, 7);
 		UpdateJointPosition (rightElbow, e, 17);
 
