@@ -9,7 +9,7 @@ public class JointRotation : MonoBehaviour {
 	void LateUpdate() {
 		UpdateOrientation (leftElbow, leftHand);
 		UpdateOrientation (rightElbow, rightHand);
-		UpdateOrientation (rightShoulder, rightElbow);
+		UpdateOrientation (leftShoulder, leftElbow);
 		UpdateOrientation (rightShoulder, rightElbow);
 	}
 

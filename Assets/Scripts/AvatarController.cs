@@ -8,23 +8,25 @@ public class AvatarController : OmicronEventClient {
 	public float yOffset = 0;
 
 	public GameObject kinect;
-
-	public bool useIK = false;
-	public Transform objectToReach;
-
-	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow;
+	
+	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow, leftShoulder, rightShoulder, head;
+	public Transform leftHandIndicator, rightHandIndicator;
 
 	public enum KinectHandState { Unknown, NotTracked, Open, Closed, Lasso };
 
 	private Vector3 kinectPosition;
 
 	private KinectHandState leftHandState, rightHandState;
+	private Vector3 originalHipsPosition;
 
-	private Animator animator;
+	private float verticalDistance, horizontalDistance, verticalMultiplier, horizontalMultiplier;
+	
 
 	void Start() {
+		horizontalDistance = Vector3.Distance(leftShoulder.transform.position, rightShoulder.transform.position);
+		verticalDistance = head.transform.position.y;
 		kinectPosition = kinect.transform.position;
-		animator = GetComponent<Animator> ();
+		originalHipsPosition = hips.transform.position;
 		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
 		omicronManager.AddClient(this);
 	}
@@ -61,18 +63,13 @@ public class AvatarController : OmicronEventClient {
 	}
 
 
-	void OnAnimatorIK() {
-		if (useIK) {
-			//animator.SetLookAtWeight (1);
-			//animator.SetLookAtPosition (rightHand.transform.position);
-			animator.SetIKPositionWeight (AvatarIKGoal.RightHand, 1);
-			animator.SetIKRotationWeight (AvatarIKGoal.RightHand, 1);  
-			animator.SetIKPosition (AvatarIKGoal.RightHand, objectToReach.position);
-			animator.SetIKRotation (AvatarIKGoal.RightHand, objectToReach.rotation);
-		}
-	}
 
 	private void UpdateJointsPosition(EventData e) {
+
+		float shoulderDistance = Vector3.Distance(GetJointPosition(e, 6), GetJointPosition(e, 16));
+		horizontalMultiplier = horizontalDistance / shoulderDistance;
+
+		verticalMultiplier = verticalDistance / GetJointPosition(e, 1).y;
 
 		//UpdateJointPosition (hips, e, 0);
 		UpdateJointPosition (leftElbow, e, 7);
@@ -83,13 +80,19 @@ public class AvatarController : OmicronEventClient {
 		leftHandState = FetchHandState(e.orw);
 		rightHandState = FetchHandState(e.orx);
 
+		leftHandIndicator.position = GetJointPosition(e, 9) + kinectPosition;
+		rightHandIndicator.position = GetJointPosition(e, 19) + kinectPosition;
+
+		//hips.transform.position = hips.transform.position - originalHipsPosition;
+
 	}
 
 
 	private void UpdateJointPosition(GameObject joint, EventData e, int jointId) {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.position = newPosition + kinectPosition + new Vector3(0f,yOffset,0f);
+			//joint.transform.position = newPosition + kinectPosition + new Vector3(0f,yOffset,0f);
+			joint.transform.position = new Vector3(newPosition.x * horizontalMultiplier, newPosition.y * verticalMultiplier, newPosition.z) + kinectPosition;
 		}
 	}
 }

@@ -81,9 +81,9 @@ public class IKAvatarController : OmicronEventClient {
 	private void UpdateJointsPosition(EventData e) {
 
 		leftHandPosition = GetJointPosition(e, 9);
-		leftHandIndicator.position = leftHandPosition + kinectPosition;
+		leftHandIndicator.position = leftHandPosition - kinectPosition;
 		rightHandPosition = GetJointPosition(e, 19);
-		rightHandIndicator.position = rightHandPosition + kinectPosition;
+		rightHandIndicator.position = rightHandPosition - kinectPosition;
 		
 	}
 

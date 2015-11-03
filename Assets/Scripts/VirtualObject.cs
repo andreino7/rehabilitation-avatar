@@ -16,7 +16,7 @@ public class VirtualObject : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider other) {
-		if (!isCaught) {
+		if (other.gameObject.tag == "Hand" && !isCaught) {
 			Debug.Log ("Object reached!!");
 			Invoke ("ObjectCaught", 2f);
 			GetComponent<Renderer> ().material = triggerMaterial;
@@ -24,10 +24,13 @@ public class VirtualObject : MonoBehaviour {
 	}
 
 	void OnTriggerExit(Collider other) {
-		if (!isCaught) {
-			GetComponent<Renderer> ().material = defaultMaterial;
+		if(other.gameObject.tag == "Hand"){
+			Debug.Log ("Object lost!!");
+			if (!isCaught) {
+				GetComponent<Renderer> ().material = defaultMaterial;
+			}
+			CancelInvoke ();
 		}
-		CancelInvoke ();
 	}
 
 	void ObjectCaught() {

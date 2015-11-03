@@ -269,8 +269,8 @@ public class OmicronPlayerController : OmicronWandUpdater {
 	
 	void UpdateWalkMovement()
 	{
-		//GetComponent<Rigidbody>().useGravity = true;
-		//GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
+		GetComponent<Rigidbody>().useGravity = true;
+		GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
 		playerCollider.enabled = true;
 
 		Vector3 nextPos = transform.position;
