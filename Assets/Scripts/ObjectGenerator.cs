@@ -1,15 +1,21 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
-public class ObjectGenerator : MonoBehaviour {
+public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 
 	public GameObject objectPrefab;
 
 	public int numberOfObjects = 10;
 	public float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
+
+	public Text labelLeft, labelRight; 
+
 	private static ObjectGenerator instance;
 	private int currentObject = 0;
-	private float xAvatarSize = 0.5f;
+	private float xAvatarSize = 0.3f;
+
+	private float elapsedTime = 0f;
 
 	private ObjectGenerator () {}
 
@@ -28,12 +34,12 @@ public class ObjectGenerator : MonoBehaviour {
 
 	public void CreateNewObject() {
 		if(getReal3D.Cluster.isMaster) {
-			currentObject++;
-			if (currentObject == numberOfObjects) {
-				EndSession();
+			
+			if (currentObject+1 == numberOfObjects) {
+				Invoke("EndSession", 1f);
 				return;
 			}
-			Vector3 newPosition = new Vector3 (Random.Range(-horizontalBounds, horizontalBounds), yOffset + Random.Range(-verticalBounds, verticalBounds), transform.position.z + 0.5f);
+			Vector3 newPosition = new Vector3 (Random.Range(-horizontalBounds, horizontalBounds), yOffset + Random.Range(-verticalBounds, verticalBounds), transform.position.z + 0.1f);
 			if(Mathf.Abs(newPosition.x) < xAvatarSize) {
 				if (newPosition.x > 0)
 					newPosition.x = newPosition.x + xAvatarSize;
@@ -47,19 +53,32 @@ public class ObjectGenerator : MonoBehaviour {
 
 	[getReal3D.RPC]
 	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
+		currentObject++;
+		elapsedTime = Time.time;
+		labelLeft.text = "Object #" + currentObject;
 		Instantiate (objectPrefab, newPosition, newQuaternion);
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
+
+	void Update() {
+		getReal3D.RpcManager.call("UpdateTime");
+		UpdateTime();
+	}
+
+	private void UpdateTime() {
+		labelRight.text = "Time: " + (Time.time-elapsedTime);
 	}
 
 	private void EndSession() {
+		GetComponent<AudioSource>().Play();
 		Invoke ("ChangeScene",3f);
 	}
 
-	private void ChangeScene() {
+	private void ChangeScene(){
+		getReal3D.RpcManager.call("ChangeSceneRPC");
+	}
+
+	[getReal3D.RPC]
+	private void ChangeSceneRPC() {
 		Application.LoadLevel ("Results");
 	}
 }

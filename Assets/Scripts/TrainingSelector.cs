@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class TrainingSelector : MonoBehaviour {
+public class TrainingSelector : getReal3D.MonoBehaviourWithRpc {
 
 	public GameObject firstPanel, secondPanel;
 	public Text patientId;

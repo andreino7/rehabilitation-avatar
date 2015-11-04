@@ -96,14 +96,14 @@ public class FlatAvatarController : OmicronEventClient {
 	private void UpdateJointPosition(GameObject joint, EventData e, int jointId) {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.localPosition = newPosition;
+			joint.transform.localPosition = newPosition + new Vector3(0f,0.6f,2.5f);
 		}
 	}
 
 	private void UpdateHipsPosition(EventData e) {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
-			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z);
+			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f,0.6f,2.5f);
 		}
 	}
 

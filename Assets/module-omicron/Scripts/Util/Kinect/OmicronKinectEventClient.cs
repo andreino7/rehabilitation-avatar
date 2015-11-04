@@ -88,7 +88,7 @@ public class OmicronKinectEventClient : OmicronEventClient {
 
 	void RemoveBody()
 	{
-		kinectManager.RemoveBody(bodyID);
+		//kinectManager.RemoveBody(bodyID);
 		SetFlaggedForRemoval();
 		Destroy( gameObject );
 	}
