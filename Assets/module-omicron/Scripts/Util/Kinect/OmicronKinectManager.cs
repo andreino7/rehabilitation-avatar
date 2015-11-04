@@ -32,7 +32,7 @@ using omicronConnector;
 
 public class OmicronKinectManager : OmicronEventClient {
 
-	public GameObject kinect2bodyPrefab;
+//	public GameObject kinect2bodyPrefab;
 
 	public Vector3 kinectSensorPosition;
 	public Vector3 kinectSensorTilt;
@@ -63,7 +63,7 @@ public class OmicronKinectManager : OmicronEventClient {
 			int sourceID = (int)e.sourceId;
 			if( !trackedBodies.ContainsKey( sourceID ) )
 			{
-				CreateBody(sourceID);
+				//CreateBody(sourceID);
 			}
 		}
 		else if (enableSpeechRecognition && e.serviceType == EventBase.ServiceType.ServiceTypeSpeech)
@@ -83,7 +83,7 @@ public class OmicronKinectManager : OmicronEventClient {
 		}
 	}
 
-	void CreateBody( int sourceID )
+	/*void CreateBody( int sourceID )
 	{
 		GameObject body;
 
@@ -96,7 +96,7 @@ public class OmicronKinectManager : OmicronEventClient {
 		body.GetComponent<OmicronKinectEventClient>().kinectManager = this;
 		body.layer = gameObject.layer;
 		trackedBodies.Add( sourceID, body );
-	}
+	}*/
 
 	public void RemoveBody(int bodyID )
 	{
