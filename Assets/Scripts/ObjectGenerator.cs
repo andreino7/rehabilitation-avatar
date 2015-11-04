@@ -70,6 +70,7 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	private void EndSession() {
+		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		GetComponent<AudioSource>().Play();
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, transform.position, Quaternion.identity);
 		Invoke ("ChangeScene",3f);
