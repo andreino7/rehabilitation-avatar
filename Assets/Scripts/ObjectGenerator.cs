@@ -10,6 +10,7 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	public float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
 
 	public Text labelLeft, labelRight; 
+	public GameObject sessionCompleteAnimation;
 
 	private static ObjectGenerator instance;
 	private int currentObject = 0;
@@ -70,6 +71,7 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 
 	private void EndSession() {
 		GetComponent<AudioSource>().Play();
+		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, transform.position, Quaternion.identity);
 		Invoke ("ChangeScene",3f);
 	}
 
