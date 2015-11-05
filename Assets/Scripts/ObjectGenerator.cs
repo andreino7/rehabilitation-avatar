@@ -61,8 +61,8 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	void Update() {
-		getReal3D.RpcManager.call("UpdateTime");
-		UpdateTime();
+		if(getReal3D.Cluster.isMaster) getReal3D.RpcManager.call("UpdateTime");
+		//UpdateTime();
 	}
 
 	private void UpdateTime() {
@@ -71,9 +71,17 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 
 	private void EndSession() {
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
+		if(getReal3D.Cluster.isMaster) {
+			getReal3D.RpcManager.call("EndSessionRPC");
+			Invoke ("ChangeScene",4f);
+		}
+	}
+
+	[getReal3D.RPC]
+	private void EndSessionRPC() {
 		GetComponent<AudioSource>().Play();
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, transform.position, Quaternion.identity);
-		Invoke ("ChangeScene",3f);
+
 	}
 
 	private void ChangeScene(){

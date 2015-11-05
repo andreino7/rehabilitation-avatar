@@ -6,6 +6,7 @@ public class VirtualObject : MonoBehaviour {
 	public Material defaultMaterial, triggerMaterial;
 	public GameObject animationVfx;
 	private float animationTime = 1.4f;
+	private float keepStill = 0.5f;
 	private float scaleMultiplier = 3f;
 	private Vector3 originalScale;
 	private bool isCaught;
@@ -18,7 +19,7 @@ public class VirtualObject : MonoBehaviour {
 	void OnTriggerEnter(Collider other) {
 		if (other.gameObject.tag == "Hand" && !isCaught) {
 			Debug.Log ("Object reached!!");
-			Invoke ("ObjectCaught", 2f);
+			Invoke ("ObjectCaught", keepStill);
 			GetComponent<Renderer> ().material = triggerMaterial;
 		}
 	}

@@ -5,9 +5,15 @@ using System.Collections;
 public class TrainingSelector : getReal3D.MonoBehaviourWithRpc {
 
 	public GameObject firstPanel, secondPanel;
-	public Text patientId;
+	public InputField patientId;
 
 	private int trainingModeId;
+
+	void Start(){
+		if(PlayerPrefs.HasKey("PatientId")) {
+			patientId.text = PlayerPrefs.GetString("PatientId");
+		}
+	}
 
 	public void InsertPatientId() {
 		if(patientId.text != "" && getReal3D.Cluster.isMaster) {

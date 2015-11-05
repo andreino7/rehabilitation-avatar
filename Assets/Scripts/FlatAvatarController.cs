@@ -87,8 +87,8 @@ public class FlatAvatarController : OmicronEventClient {
 		leftHandState = FetchHandState(e.orw);
 		rightHandState = FetchHandState(e.orx);
 
-		leftHandIndicator.localPosition = GetJointPosition(e, 9);
-		rightHandIndicator.localPosition = GetJointPosition(e, 19);
+		//leftHandIndicator.localPosition = GetJointPosition(e, 9);
+		//rightHandIndicator.localPosition = GetJointPosition(e, 19);
 
 	}
 
