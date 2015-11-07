@@ -37,6 +37,7 @@ public class VirtualObject : MonoBehaviour {
 	void ObjectCaught() {
 		if (!isCaught) {
 			Debug.Log ("Object caught!!");
+			ObjectGenerator.isTimerStopped = true;
 			GetComponent<AudioSource> ().Play ();
 			StartCoroutine (ObjectCaughtCoroutine ());
 			isCaught = true;

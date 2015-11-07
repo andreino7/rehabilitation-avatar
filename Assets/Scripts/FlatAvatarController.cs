@@ -2,6 +2,7 @@
 using System.Collections;
 using omicron;
 using omicronConnector;
+using SimpleJSON;
 
 public class FlatAvatarController : OmicronEventClient {
 
@@ -10,6 +11,8 @@ public class FlatAvatarController : OmicronEventClient {
 	public GameObject kinect;
 	
 	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow, leftShoulder, rightShoulder, head;
+	public GameObject leftHip, rightHip, leftKnee, rightKnee, leftFoot, rightFoot;
+	public GameObject leftFinger, rightFinger;
 	public Transform leftHandIndicator, rightHandIndicator;
 
 	public enum KinectHandState { Unknown, NotTracked, Open, Closed, Lasso };
@@ -19,7 +22,12 @@ public class FlatAvatarController : OmicronEventClient {
 	private KinectHandState leftHandState, rightHandState;
 	private Vector3 originalHipsPosition;
 
+	private int bodyId = -1;
+
 	private float verticalDistance, horizontalDistance, verticalMultiplier, horizontalMultiplier;
+
+	static public JSONNode outputData;
+	static public JSONArray positions = new JSONArray();
 	
 
 	void Start() {
@@ -31,6 +39,11 @@ public class FlatAvatarController : OmicronEventClient {
 		*/
 		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
 		omicronManager.AddClient(this);
+		outputData = new JSONClass();
+		outputData["patientId"] = PlayerPrefs.GetString("PatientId");
+		outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
+		Debug.Log(outputData.ToString());
+		StartCoroutine(LogPositionsCoroutine());
 	}
 
 	//Fetch data gathered from Kinect
@@ -68,6 +81,14 @@ public class FlatAvatarController : OmicronEventClient {
 
 	private void UpdateJointsPosition(EventData e) {
 
+		if (e.serviceType != EventBase.ServiceType.ServiceTypeMocap) return;
+
+		int sourceId = (int)e.sourceId;
+		//Debug.Log(sourceId);
+		if(bodyId == -1 && sourceId > 1) bodyId=sourceId;
+
+		if(bodyId != sourceId) return;
+
 		float shoulderDistance = Vector3.Distance(GetJointPosition(e, 6), GetJointPosition(e, 16));
 		horizontalMultiplier = horizontalDistance / shoulderDistance;
 
@@ -86,10 +107,19 @@ public class FlatAvatarController : OmicronEventClient {
 
 		leftHandState = FetchHandState(e.orw);
 		rightHandState = FetchHandState(e.orx);
+		/*
+		UpdateJointPosition (leftHip, e, 11);
+		UpdateJointPosition (rightHip, e, 21);
 
-		//leftHandIndicator.localPosition = GetJointPosition(e, 9);
-		//rightHandIndicator.localPosition = GetJointPosition(e, 19);
+		UpdateJointPosition (leftKnee, e, 12);
+		UpdateJointPosition (rightKnee, e, 22);
 
+		UpdateJointPosition (leftFoot, e, 14);
+		UpdateJointPosition (rightFoot, e, 24);
+		*/
+
+		UpdateJointPosition (leftFinger, e, 10);
+		UpdateJointPosition (rightFinger, e, 20);
 	}
 
 
@@ -104,6 +134,23 @@ public class FlatAvatarController : OmicronEventClient {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
 			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f,0.6f,2.5f);
+		}
+	}
+
+	IEnumerator LogPositionsCoroutine() {
+		while(!ObjectGenerator.isTimerStopped) {
+			yield return new WaitForSeconds(0.05f);
+			JSONNode newPos = new JSONClass();
+			newPos["time"].AsFloat = Time.time;
+
+			JSONArray leftHandPos = new JSONArray();
+			leftHandPos[0].AsFloat = leftHand.transform.position.x;
+			leftHandPos[1].AsFloat = leftHand.transform.position.y;
+			leftHandPos[2].AsFloat = leftHand.transform.position.z;
+
+			newPos["leftHand"] = leftHandPos;
+
+			positions.Add(newPos);
 		}
 	}
 

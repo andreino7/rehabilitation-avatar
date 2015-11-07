@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System;
+using System.IO;
 
 public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 
@@ -18,6 +20,8 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 
 	private float elapsedTime = 0f;
 
+	static public bool isTimerStopped = false;
+
 	private ObjectGenerator () {}
 
 	void Awake () {
@@ -34,20 +38,22 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public void CreateNewObject() {
+
 		if(getReal3D.Cluster.isMaster) {
 			
-			if (currentObject+1 == numberOfObjects) {
+			if (currentObject == numberOfObjects) {
 				Invoke("EndSession", 1f);
 				return;
 			}
-			Vector3 newPosition = new Vector3 (Random.Range(-horizontalBounds, horizontalBounds), yOffset + Random.Range(-verticalBounds, verticalBounds), transform.position.z + 0.1f);
+			isTimerStopped = false;
+			Vector3 newPosition = new Vector3 (UnityEngine.Random.Range(-horizontalBounds, horizontalBounds), yOffset + UnityEngine.Random.Range(-verticalBounds, verticalBounds), transform.position.z + 0.1f);
 			if(Mathf.Abs(newPosition.x) < xAvatarSize) {
 				if (newPosition.x > 0)
 					newPosition.x = newPosition.x + xAvatarSize;
 				else if(newPosition.x < 0)
 					newPosition.x = newPosition.x - xAvatarSize;
 			}
-			Quaternion newQuaternion = Quaternion.Euler (Random.Range (0f, 360f), Random.Range (0.0f, 360f), Random.Range (0.0f, 360f));
+			Quaternion newQuaternion = Quaternion.Euler (UnityEngine.Random.Range (0f, 360f), UnityEngine.Random.Range (0.0f, 360f), UnityEngine.Random.Range (0.0f, 360f));
 			getReal3D.RpcManager.call("CreateNewObjectRPC", newPosition, newQuaternion);
 		}
 	}
@@ -61,8 +67,7 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	void Update() {
-		if(getReal3D.Cluster.isMaster) getReal3D.RpcManager.call("UpdateTime");
-		//UpdateTime();
+		if(!isTimerStopped) UpdateTime();
 	}
 
 	private void UpdateTime() {
@@ -71,6 +76,10 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 
 	private void EndSession() {
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
+		FlatAvatarController.outputData["elapsedTime"].AsFloat = elapsedTime;
+		FlatAvatarController.outputData["numberOfObjects"].AsInt = numberOfObjects;
+		FlatAvatarController.outputData["positions"] = FlatAvatarController.positions;
+		if(getReal3D.Cluster.isMaster) WriteLogFile();
 		if(getReal3D.Cluster.isMaster) {
 			getReal3D.RpcManager.call("EndSessionRPC");
 			Invoke ("ChangeScene",4f);
@@ -91,5 +100,13 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	[getReal3D.RPC]
 	private void ChangeSceneRPC() {
 		Application.LoadLevel ("Results");
+	}
+
+	private void WriteLogFile() {
+		using (StreamWriter sw = new StreamWriter("C:\\Users\\evldemo\\Desktop\\Rehabilitation Log\\log.txt")) {
+			sw.Write(FlatAvatarController.outputData.ToString());
+			sw.Close();
+		}
+		Debug.Log(FlatAvatarController.outputData.ToString());
 	}
 }
