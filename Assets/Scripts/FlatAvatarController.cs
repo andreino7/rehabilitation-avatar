@@ -6,7 +6,7 @@ using SimpleJSON;
 
 public class FlatAvatarController : OmicronEventClient {
 
-	public float yOffset = 0;
+	public float yOffset = 0.6f, zOffset = 2.5f;
 
 	public GameObject kinect;
 	
@@ -107,33 +107,33 @@ public class FlatAvatarController : OmicronEventClient {
 
 		leftHandState = FetchHandState(e.orw);
 		rightHandState = FetchHandState(e.orx);
-		/*
+
 		UpdateJointPosition (leftHip, e, 11);
 		UpdateJointPosition (rightHip, e, 21);
 
 		UpdateJointPosition (leftKnee, e, 12);
 		UpdateJointPosition (rightKnee, e, 22);
 
-		UpdateJointPosition (leftFoot, e, 14);
-		UpdateJointPosition (rightFoot, e, 24);
-		*/
+		UpdateJointPosition (leftFoot, e, 13);
+		UpdateJointPosition (rightFoot, e, 23);
 
-		UpdateJointPosition (leftFinger, e, 10);
-		UpdateJointPosition (rightFinger, e, 20);
+
+		//UpdateJointPosition (leftFinger, e, 10);
+		//UpdateJointPosition (rightFinger, e, 20);
 	}
 
 
 	private void UpdateJointPosition(GameObject joint, EventData e, int jointId) {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.localPosition = newPosition + new Vector3(0f,0.6f,2.5f);
+			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, zOffset);
 		}
 	}
 
 	private void UpdateHipsPosition(EventData e) {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
-			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f,0.6f,2.5f);
+			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, zOffset);
 		}
 	}
 

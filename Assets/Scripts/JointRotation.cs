@@ -15,12 +15,12 @@ public class JointRotation : MonoBehaviour {
 		UpdateOrientation (rightElbow, rightHand);
 		UpdateOrientation (leftShoulder, leftElbow);
 		UpdateOrientation (rightShoulder, rightElbow);
-		/*
-		UpdateOrientationCustom (leftKnee, leftFoot, xOffset2, yOffset2, zOffset2);
-		UpdateOrientationCustom (rightKnee, rightFoot, xOffset2, yOffset2, zOffset2);
-		UpdateOrientationCustom (leftHip, leftKnee, xOffset2, yOffset2, zOffset2);
-		UpdateOrientationCustom (rightHip, rightKnee, xOffset2, yOffset2, zOffset2);
-		*/
+
+		UpdateOrientationCustom (leftKnee, leftFoot, 0f, 90f, 0f);
+		UpdateOrientationCustom (rightKnee, rightFoot, 0f, 90f, -90f);
+		UpdateOrientationCustom (leftHip, leftKnee, 0f, 90f, 0f);
+		UpdateOrientationCustom (rightHip, rightKnee, 0f, 90f, 0f);
+
 		/*
 		UpdateOrientationCustom (leftHand, leftFinger, xOffset, 0f, zOffset);
 		UpdateOrientationCustom (rightHand, rightFinger, xOffset, 0f, zOffset);
