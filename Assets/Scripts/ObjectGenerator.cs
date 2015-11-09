@@ -82,7 +82,7 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 		if(getReal3D.Cluster.isMaster) WriteLogFile();
 		if(getReal3D.Cluster.isMaster) {
 			getReal3D.RpcManager.call("EndSessionRPC");
-			Invoke ("ChangeScene",4f);
+			//Invoke ("ChangeScene",4f);
 		}
 	}
 
@@ -108,5 +108,14 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 			sw.Close();
 		}
 		Debug.Log(FlatAvatarController.outputData.ToString());
+	}
+
+	public void RestartSession(){
+		getReal3D.RpcManager.call("RestartSessionRPC");
+	}
+
+	[getReal3D.RPC]
+	private void RestartSessionRPC(){
+		Application.LoadLevel("Main");
 	}
 }

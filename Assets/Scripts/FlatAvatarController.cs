@@ -28,7 +28,7 @@ public class FlatAvatarController : OmicronEventClient {
 
 	static public JSONNode outputData;
 	static public JSONArray positions = new JSONArray();
-	
+	public static int patientBodyID;
 
 	void Start() {
 		/*
@@ -76,8 +76,7 @@ public class FlatAvatarController : OmicronEventClient {
 		default: return KinectHandState.Unknown;
 		}
 	}
-
-
+	
 
 	private void UpdateJointsPosition(EventData e) {
 
@@ -85,9 +84,13 @@ public class FlatAvatarController : OmicronEventClient {
 
 		int sourceId = (int)e.sourceId;
 		//Debug.Log(sourceId);
-		if(bodyId == -1 && sourceId > 1) bodyId=sourceId;
+		//if(bodyId == -1 && sourceId > 1) bodyId=sourceId;
 
-		if(bodyId != sourceId) return;
+		if(patientBodyID != sourceId) {
+			//Debug.Log ("patient body" + patientBodyID );
+			//Debug.Log ("source id" + sourceId);
+			return;
+		}
 
 		float shoulderDistance = Vector3.Distance(GetJointPosition(e, 6), GetJointPosition(e, 16));
 		horizontalMultiplier = horizontalDistance / shoulderDistance;

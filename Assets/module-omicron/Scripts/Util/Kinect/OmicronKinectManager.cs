@@ -27,6 +27,7 @@
 
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using omicron;
 using omicronConnector;
 
@@ -41,13 +42,14 @@ public class OmicronKinectManager : OmicronEventClient {
 	public bool enableSpeechRecognition = true;
 	public float minimumSpeechConfidence = 0.3f;
 
-	Hashtable trackedBodies;
+	private Dictionary<int, float> trackedBodies;
+	//private List<int> trackedBodies;
 
 	public GameObject[] voiceCommandListeners;
 
 	// Use this for initialization
 	new void Start () {
-		trackedBodies = new Hashtable ();
+		trackedBodies = new Dictionary<int, float> ();
 		InitOmicron ();
 	}
 
@@ -61,10 +63,19 @@ public class OmicronKinectManager : OmicronEventClient {
 		if (enableBodyTracking && e.serviceType == EventBase.ServiceType.ServiceTypeMocap )
 		{
 			int sourceID = (int)e.sourceId;
+		//	Debug.Log(sourceID);
+			float[] jointPosition = new float[3];
+			e.getExtraDataVector3(0, jointPosition);
 			if( !trackedBodies.ContainsKey( sourceID ) )
 			{
-				//CreateBody(sourceID);
+			//	Debug.Log(sourceID);
+			//	Debug.Log("new key");
+				trackedBodies.Add( sourceID, jointPosition[2]);
+			//	Debug.Log (trackedBodies[sourceID]);
+			} else {
+				trackedBodies[sourceID] = jointPosition[2];
 			}
+			UpdatePatientBody();
 		}
 		else if (enableSpeechRecognition && e.serviceType == EventBase.ServiceType.ServiceTypeSpeech)
 		{
@@ -83,11 +94,11 @@ public class OmicronKinectManager : OmicronEventClient {
 		}
 	}
 
-	/*void CreateBody( int sourceID )
+/*	void CreateBody( int sourceID )
 	{
 		GameObject body;
 
-		body = Instantiate(kinect2bodyPrefab) as GameObject;
+		body = Instantiate() as GameObject;
 
 		body.transform.parent = transform;
 		body.transform.localPosition = Vector3.zero;
@@ -97,6 +108,22 @@ public class OmicronKinectManager : OmicronEventClient {
 		body.layer = gameObject.layer;
 		trackedBodies.Add( sourceID, body );
 	}*/
+
+	private void UpdatePatientBody () {
+
+		float minZ = 10000;
+		int minSourceBody = FlatAvatarController.patientBodyID;
+		foreach (int bodyId in trackedBodies.Keys) {
+			if ( trackedBodies[bodyId] < minZ && bodyId > 1 ) {
+				minZ = trackedBodies[bodyId];
+				//Debug.Log (trackedBodies[bodyId]);
+				minSourceBody = bodyId;
+			}
+		}
+		Debug.Log (minZ);
+		FlatAvatarController.patientBodyID = minSourceBody;
+		//Debug.Log (FlatAvatarController.patientBodyID);
+	}
 
 	public void RemoveBody(int bodyID )
 	{
