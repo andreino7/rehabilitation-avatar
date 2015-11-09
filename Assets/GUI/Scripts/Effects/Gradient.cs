@@ -15,24 +15,18 @@ namespace UnityEngine.UI
 		[SerializeField] private Color bottomColor = Color.black;
 
 #if UNITY_5_2
-        public override void ModifyMesh(Mesh mesh)
+		public override void ModifyMesh(VertexHelper vertexHelper)
         {
             if (!this.IsActive())
                 return;
 
             List<UIVertex> list = new List<UIVertex>();
-            using (VertexHelper vertexHelper = new VertexHelper(mesh))
-            {
-                vertexHelper.GetUIVertexStream(list);
-            }
+            vertexHelper.GetUIVertexStream(list);
 
             ModifyVertices(list);  // calls the old ModifyVertices which was used on pre 5.2
 
-            using (VertexHelper vertexHelper2 = new VertexHelper())
-            {
-                vertexHelper2.AddUIVertexTriangleStream(list);
-                vertexHelper2.FillMesh(mesh);
-            }
+			vertexHelper.Clear();
+            vertexHelper.AddUIVertexTriangleStream(list);
         }
 #endif
 

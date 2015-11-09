@@ -41,6 +41,20 @@ namespace UnityEngine.UI
 #endif
 
 #if UNITY_5_2
+		public void ModifyMesh(VertexHelper vertexHelper)
+		{
+			if (!this.enabled)
+				return;
+			
+			List<UIVertex> list = new List<UIVertex>();
+			vertexHelper.GetUIVertexStream(list);
+			
+			ModifyVertices(list);  // calls the old ModifyVertices which was used on pre 5.2
+			
+			vertexHelper.Clear();
+			vertexHelper.AddUIVertexTriangleStream(list);
+		}
+
         public void ModifyMesh(Mesh mesh)
         {
             if (!this.enabled)
