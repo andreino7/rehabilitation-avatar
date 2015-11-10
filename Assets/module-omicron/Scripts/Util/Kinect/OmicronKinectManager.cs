@@ -34,6 +34,7 @@ using omicronConnector;
 public class OmicronKinectManager : OmicronEventClient {
 
 	public GameObject therapist;
+	public GameObject menuManager;
 	public FlatAvatarController patient;
 
 	public Vector3 kinectSensorPosition;
@@ -44,25 +45,25 @@ public class OmicronKinectManager : OmicronEventClient {
 	public float minimumSpeechConfidence = 0.3f;
 
 	private Dictionary<int, float> trackedBodies;
+	private static int voiceListeners = 1;
 
 	public GameObject[] voiceCommandListeners;
 
 	// Use this for initialization
 	new void Start () {
 		trackedBodies = new Dictionary<int, float> ();
+		voiceCommandListeners = new GameObject[voiceListeners];
+		voiceCommandListeners [0] = menuManager;
 		InitOmicron ();
 	}
 
-	void OnEvent( EventData e )
-	{
-		if (enableBodyTracking && e.serviceType == EventBase.ServiceType.ServiceTypeMocap )
-		{
+	void OnEvent( EventData e ) {
+		if (enableBodyTracking && e.serviceType == EventBase.ServiceType.ServiceTypeMocap ) {
 			int sourceID = (int)e.sourceId;
 			if(sourceID > 1) {
 				float[] jointPosition = new float[3];
 				e.getExtraDataVector3(0, jointPosition);
-				if( !trackedBodies.ContainsKey( sourceID ) )
-				{
+				if( !trackedBodies.ContainsKey (sourceID) ) {
 					trackedBodies.Add( sourceID, jointPosition[2]);
 					if (patient.bodyId != -1) {
 						CreateBody( sourceID );
@@ -74,18 +75,14 @@ public class OmicronKinectManager : OmicronEventClient {
 					UpdatePatientBody();
 				}
 			}
-		}
-		else if (enableSpeechRecognition && e.serviceType == EventBase.ServiceType.ServiceTypeSpeech)
-		{
+		} else if (enableSpeechRecognition && e.serviceType == EventBase.ServiceType.ServiceTypeSpeech) {
 			string speechString = e.getExtraDataString();
 			float speechConfidence = e.posx;
 
 			//Debug.Log("Received Speech: '" + speechString + "' at " +speechConfidence+ " confidence" );
 
-			if( speechConfidence >= minimumSpeechConfidence )
-			{
-				foreach( GameObject voiceListeners in voiceCommandListeners )
-				{
+			if( speechConfidence >= minimumSpeechConfidence ) {
+				foreach( GameObject voiceListeners in voiceCommandListeners ) {
 					voiceListeners.SendMessage("OnVoiceCommand", speechString);
 				}
 			}
@@ -93,7 +90,6 @@ public class OmicronKinectManager : OmicronEventClient {
 	}
 
 	void CreateBody( int sourceId ) {
-
 		GameObject body;
 		body = Instantiate(therapist) as GameObject;
 		body.transform.parent = transform;
