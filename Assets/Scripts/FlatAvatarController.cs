@@ -6,48 +6,44 @@ using SimpleJSON;
 
 public class FlatAvatarController : OmicronEventClient {
 
-	public bool isThirdPerson = true;
-	public float yOffset = 0.6f, zOffset = 2.5f;
-
-	public GameObject kinect;
-	public OmicronKinectManager kinectManager;
-	
-	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow, leftShoulder, rightShoulder, head;
-	public GameObject leftHip, rightHip, leftKnee, rightKnee, leftFoot, rightFoot;
-	public GameObject leftFinger, rightFinger;
-	public Transform leftHandIndicator, rightHandIndicator;
-
-	public enum KinectHandState { Unknown, NotTracked, Open, Closed, Lasso };
-
-	private Vector3 kinectPosition;
-
-	private KinectHandState leftHandState, rightHandState;
-	private Vector3 originalHipsPosition;
-
-	public int bodyId = -1;
-
-	private float verticalDistance, horizontalDistance, verticalMultiplier, horizontalMultiplier;
-
 	static public JSONNode outputData;
 	static public JSONArray positions = new JSONArray();
 
+	public bool isThirdPerson = true;
 	public bool isPatient = false;
+
+	public float yOffset = 0.6f, zOffset = 2.5f;
 	private float lastUpdate, timeout = 0.1f;
+	public int bodyId = -1;
+
+	public OmicronKinectManager kinectManager;
+	
+	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow, leftShoulder, rightShoulder;
+	public GameObject leftHip, rightHip, leftKnee, rightKnee, leftFoot, rightFoot;
+	public GameObject kinect;
+
+
+	public enum KinectHandState { Unknown, NotTracked, Open, Closed, Lasso };
+	private KinectHandState leftHandState, rightHandState;
+
+
+
+	//public Transform leftHandIndicator, rightHandIndicator;
+	//private Vector3 kinectPosition;
+	//public GameObject leftFinger, rightFinger;
+	//private float verticalDistance, horizontalDistance, verticalMultiplier, horizontalMultiplier;
+
+
+
+
 
 	void Start() {
-		/*
-		horizontalDistance = Vector3.Distance(leftShoulder.transform.position, rightShoulder.transform.position);
-		verticalDistance = head.transform.position.y;
-		kinectPosition = kinect.transform.position;
-		originalHipsPosition = hips.transform.position;
-		*/
 		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
 		omicronManager.AddClient(this);
 		if(isPatient) {
 			outputData = new JSONClass();
 			outputData["patientId"] = PlayerPrefs.GetString("PatientId");
 			outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
-			Debug.Log(outputData.ToString());
 			StartCoroutine(LogPositionsCoroutine());
 		}
 	}
@@ -55,10 +51,8 @@ public class FlatAvatarController : OmicronEventClient {
 	//Fetch data gathered from Kinect
 	void OnEvent(EventData e) {
 		if (e.serviceType == EventBase.ServiceType.ServiceTypeMocap) {
-
 			//Update joints position and state
 			UpdateJointsPosition(e);
-
 		}
 	}
 
@@ -86,20 +80,20 @@ public class FlatAvatarController : OmicronEventClient {
 
 	private void UpdateJointsPosition(EventData e) {
 
-		if (e.serviceType != EventBase.ServiceType.ServiceTypeMocap) return;
+		if (e.serviceType != EventBase.ServiceType.ServiceTypeMocap) {
+			return;
+		}
 
 		int sourceId = (int)e.sourceId;
-		//Debug.Log(sourceId);
-		//if(bodyId == -1 && sourceId > 1) bodyId=sourceId;
 
 		if(bodyId != sourceId) {
 			return;
 		}
 
-		float shoulderDistance = Vector3.Distance(GetJointPosition(e, 6), GetJointPosition(e, 16));
+		/*float shoulderDistance = Vector3.Distance(GetJointPosition(e, 6), GetJointPosition(e, 16));
 		horizontalMultiplier = horizontalDistance / shoulderDistance;
 
-		verticalMultiplier = verticalDistance / GetJointPosition(e, 1).y;
+		verticalMultiplier = verticalDistance / GetJointPosition(e, 1).y;*/
 
 		UpdateHipsPosition (e);
 
@@ -168,6 +162,7 @@ public class FlatAvatarController : OmicronEventClient {
 		kinectManager.RemoveBody(bodyId);
 		Destroy(gameObject);
 	}
+
 
 	void LateUpdate() {
 		if(!isPatient && kinectManager.GetPatientId() == bodyId) {

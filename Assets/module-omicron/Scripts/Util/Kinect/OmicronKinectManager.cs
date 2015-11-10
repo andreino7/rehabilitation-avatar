@@ -44,7 +44,6 @@ public class OmicronKinectManager : OmicronEventClient {
 	public float minimumSpeechConfidence = 0.3f;
 
 	private Dictionary<int, float> trackedBodies;
-	//private List<int> trackedBodies;
 
 	public GameObject[] voiceCommandListeners;
 
@@ -54,30 +53,20 @@ public class OmicronKinectManager : OmicronEventClient {
 		InitOmicron ();
 	}
 
-	// Update is called once per frame
-	void Update () {
-	
-	}
-
 	void OnEvent( EventData e )
 	{
 		if (enableBodyTracking && e.serviceType == EventBase.ServiceType.ServiceTypeMocap )
 		{
 			int sourceID = (int)e.sourceId;
 			if(sourceID > 1) {
-			//	Debug.Log(sourceID);
 				float[] jointPosition = new float[3];
 				e.getExtraDataVector3(0, jointPosition);
 				if( !trackedBodies.ContainsKey( sourceID ) )
 				{
-				//	Debug.Log(sourceID);
-				//	Debug.Log("new key");
 					trackedBodies.Add( sourceID, jointPosition[2]);
-					Debug.Log (trackedBodies.Count);
 					if (patient.bodyId != -1) {
 						CreateBody( sourceID );
 					}
-				//	Debug.Log (trackedBodies[sourceID]);
 				} else {
 					trackedBodies[sourceID] = jointPosition[2];
 				}
@@ -103,46 +92,36 @@ public class OmicronKinectManager : OmicronEventClient {
 		}
 	}
 
-	void CreateBody( int sourceId )
-	{
+	void CreateBody( int sourceId ) {
+
 		GameObject body;
-
 		body = Instantiate(therapist) as GameObject;
-
 		body.transform.parent = transform;
 		body.layer = gameObject.layer;
 		body.GetComponent<FlatAvatarController>().bodyId = sourceId;
 		body.GetComponent<FlatAvatarController>().kinectManager = this;
-		//trackedBodies.Add( sourceID, body );
 	}
 
 	private void UpdatePatientBody () {
 
-		float minZ = 10000;
-		//float min2z = 10000;
+		float minZ = int.MaxValue;
 		int minSourceBody = patient.bodyId;
-		//int minSourceBodyT = therapist.GetComponent<FlatAvatarController>().bodyID;
 
 		foreach (int bodyId in trackedBodies.Keys) {
 			if ( trackedBodies[bodyId] < minZ && bodyId > 1 ) {
-				//min2z = minZ;
-				//minSourceBodyT = minSourceBody;
 				minZ = trackedBodies[bodyId];
-				//Debug.Log (trackedBodies[bodyId]);
 				minSourceBody = bodyId;
 			}
 		}
-		//Debug.Log (minZ);
+
 		if(minSourceBody != patient.bodyId) {
 			Debug.Log("Patient switched!!! New id: " + minSourceBody + ", z: " + minZ);
 		}
 		patient.bodyId = minSourceBody;
-		//therapist.GetComponent<FlatAvatarController>().bodyID = minSourceBodyT;
 
-		//Debug.Log (FlatAvatarController.patientBodyID);
 	}
 
-	public int GetPatientId(){
+	public int GetPatientId() {
 		return patient.bodyId;
 	}
 
