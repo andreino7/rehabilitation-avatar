@@ -33,7 +33,8 @@ using omicronConnector;
 
 public class OmicronKinectManager : OmicronEventClient {
 
-//	public GameObject kinect2bodyPrefab;
+	public GameObject therapist;
+	public FlatAvatarController patient;
 
 	public Vector3 kinectSensorPosition;
 	public Vector3 kinectSensorTilt;
@@ -63,19 +64,27 @@ public class OmicronKinectManager : OmicronEventClient {
 		if (enableBodyTracking && e.serviceType == EventBase.ServiceType.ServiceTypeMocap )
 		{
 			int sourceID = (int)e.sourceId;
-		//	Debug.Log(sourceID);
-			float[] jointPosition = new float[3];
-			e.getExtraDataVector3(0, jointPosition);
-			if( !trackedBodies.ContainsKey( sourceID ) )
-			{
+			if(sourceID > 1) {
 			//	Debug.Log(sourceID);
-			//	Debug.Log("new key");
-				trackedBodies.Add( sourceID, jointPosition[2]);
-			//	Debug.Log (trackedBodies[sourceID]);
-			} else {
-				trackedBodies[sourceID] = jointPosition[2];
+				float[] jointPosition = new float[3];
+				e.getExtraDataVector3(0, jointPosition);
+				if( !trackedBodies.ContainsKey( sourceID ) )
+				{
+				//	Debug.Log(sourceID);
+				//	Debug.Log("new key");
+					trackedBodies.Add( sourceID, jointPosition[2]);
+					Debug.Log (trackedBodies.Count);
+					if (patient.bodyId != -1) {
+						CreateBody( sourceID );
+					}
+				//	Debug.Log (trackedBodies[sourceID]);
+				} else {
+					trackedBodies[sourceID] = jointPosition[2];
+				}
+				if(patient.bodyId == -1) {
+					UpdatePatientBody();
+				}
 			}
-			UpdatePatientBody();
 		}
 		else if (enableSpeechRecognition && e.serviceType == EventBase.ServiceType.ServiceTypeSpeech)
 		{
@@ -94,40 +103,52 @@ public class OmicronKinectManager : OmicronEventClient {
 		}
 	}
 
-/*	void CreateBody( int sourceID )
+	void CreateBody( int sourceId )
 	{
 		GameObject body;
 
-		body = Instantiate() as GameObject;
+		body = Instantiate(therapist) as GameObject;
 
 		body.transform.parent = transform;
-		body.transform.localPosition = Vector3.zero;
-		body.transform.localRotation = Quaternion.identity;
-		body.GetComponent<OmicronKinectEventClient>().bodyID = sourceID;
-		body.GetComponent<OmicronKinectEventClient>().kinectManager = this;
 		body.layer = gameObject.layer;
-		trackedBodies.Add( sourceID, body );
-	}*/
+		body.GetComponent<FlatAvatarController>().bodyId = sourceId;
+		body.GetComponent<FlatAvatarController>().kinectManager = this;
+		//trackedBodies.Add( sourceID, body );
+	}
 
 	private void UpdatePatientBody () {
 
 		float minZ = 10000;
-		int minSourceBody = FlatAvatarController.patientBodyID;
+		//float min2z = 10000;
+		int minSourceBody = patient.bodyId;
+		//int minSourceBodyT = therapist.GetComponent<FlatAvatarController>().bodyID;
+
 		foreach (int bodyId in trackedBodies.Keys) {
 			if ( trackedBodies[bodyId] < minZ && bodyId > 1 ) {
+				//min2z = minZ;
+				//minSourceBodyT = minSourceBody;
 				minZ = trackedBodies[bodyId];
 				//Debug.Log (trackedBodies[bodyId]);
 				minSourceBody = bodyId;
 			}
 		}
-		Debug.Log (minZ);
-		FlatAvatarController.patientBodyID = minSourceBody;
+		//Debug.Log (minZ);
+		if(minSourceBody != patient.bodyId) {
+			Debug.Log("Patient switched!!! New id: " + minSourceBody + ", z: " + minZ);
+		}
+		patient.bodyId = minSourceBody;
+		//therapist.GetComponent<FlatAvatarController>().bodyID = minSourceBodyT;
+
 		//Debug.Log (FlatAvatarController.patientBodyID);
 	}
 
-	public void RemoveBody(int bodyID )
+	public int GetPatientId(){
+		return patient.bodyId;
+	}
+
+	public void RemoveBody(int bodyId )
 	{
-		trackedBodies.Remove( bodyID );
+		trackedBodies.Remove( bodyId );
 	}
 
 }

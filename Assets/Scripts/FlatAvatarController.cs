@@ -6,9 +6,11 @@ using SimpleJSON;
 
 public class FlatAvatarController : OmicronEventClient {
 
+	public bool isThirdPerson = true;
 	public float yOffset = 0.6f, zOffset = 2.5f;
 
 	public GameObject kinect;
+	public OmicronKinectManager kinectManager;
 	
 	public GameObject hips, leftHand, rightHand, leftElbow, rightElbow, leftShoulder, rightShoulder, head;
 	public GameObject leftHip, rightHip, leftKnee, rightKnee, leftFoot, rightFoot;
@@ -22,13 +24,15 @@ public class FlatAvatarController : OmicronEventClient {
 	private KinectHandState leftHandState, rightHandState;
 	private Vector3 originalHipsPosition;
 
-	private int bodyId = -1;
+	public int bodyId = -1;
 
 	private float verticalDistance, horizontalDistance, verticalMultiplier, horizontalMultiplier;
 
 	static public JSONNode outputData;
 	static public JSONArray positions = new JSONArray();
-	public static int patientBodyID;
+
+	public bool isPatient = false;
+	private float lastUpdate, timeout = 0.1f;
 
 	void Start() {
 		/*
@@ -39,11 +43,13 @@ public class FlatAvatarController : OmicronEventClient {
 		*/
 		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
 		omicronManager.AddClient(this);
-		outputData = new JSONClass();
-		outputData["patientId"] = PlayerPrefs.GetString("PatientId");
-		outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
-		Debug.Log(outputData.ToString());
-		StartCoroutine(LogPositionsCoroutine());
+		if(isPatient) {
+			outputData = new JSONClass();
+			outputData["patientId"] = PlayerPrefs.GetString("PatientId");
+			outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
+			Debug.Log(outputData.ToString());
+			StartCoroutine(LogPositionsCoroutine());
+		}
 	}
 
 	//Fetch data gathered from Kinect
@@ -86,9 +92,7 @@ public class FlatAvatarController : OmicronEventClient {
 		//Debug.Log(sourceId);
 		//if(bodyId == -1 && sourceId > 1) bodyId=sourceId;
 
-		if(patientBodyID != sourceId) {
-			//Debug.Log ("patient body" + patientBodyID );
-			//Debug.Log ("source id" + sourceId);
+		if(bodyId != sourceId) {
 			return;
 		}
 
@@ -105,8 +109,8 @@ public class FlatAvatarController : OmicronEventClient {
 		UpdateJointPosition (leftHand, e, 9);
 		UpdateJointPosition (rightHand, e, 19);
 
-		UpdateJointPosition (leftShoulder, e, 6);
-		UpdateJointPosition (rightShoulder, e, 16);
+		UpdateJointPosition (leftShoulder, e, 6, new Vector3(-0.1f, -0.1f, 0f));
+		UpdateJointPosition (rightShoulder, e, 16, new Vector3(0.1f, -0.1f, 0f));
 
 		leftHandState = FetchHandState(e.orw);
 		rightHandState = FetchHandState(e.orx);
@@ -123,20 +127,22 @@ public class FlatAvatarController : OmicronEventClient {
 
 		//UpdateJointPosition (leftFinger, e, 10);
 		//UpdateJointPosition (rightFinger, e, 20);
+
+		lastUpdate = Time.time;
 	}
 
 
-	private void UpdateJointPosition(GameObject joint, EventData e, int jointId) {
+	private void UpdateJointPosition(GameObject joint, EventData e, int jointId, Vector3 optionalOffset = default(Vector3)) {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, zOffset);
+			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f)) + optionalOffset;
 		}
 	}
 
 	private void UpdateHipsPosition(EventData e) {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
-			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, zOffset);
+			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f));
 		}
 	}
 
@@ -154,6 +160,26 @@ public class FlatAvatarController : OmicronEventClient {
 			newPos["leftHand"] = leftHandPos;
 
 			positions.Add(newPos);
+		}
+	}
+
+	private void KillAvatar() {
+		SetFlaggedForRemoval();
+		kinectManager.RemoveBody(bodyId);
+		Destroy(gameObject);
+	}
+
+	void LateUpdate() {
+		if(!isPatient && kinectManager.GetPatientId() == bodyId) {
+			KillAvatar();
+		}
+
+		if (Time.time > lastUpdate + timeout) {
+			if(!isPatient) {
+				KillAvatar();
+			} else {
+				bodyId = -1;
+			}
 		}
 	}
 
