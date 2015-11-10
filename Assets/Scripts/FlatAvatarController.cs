@@ -179,6 +179,7 @@ public class FlatAvatarController : OmicronEventClient {
 				KillAvatar();
 			} else {
 				bodyId = -1;
+				lastUpdate = int.MaxValue;
 			}
 		}
 	}
