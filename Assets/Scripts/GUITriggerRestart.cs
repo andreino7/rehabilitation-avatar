@@ -1,10 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class GUITriggerRestart : MonoBehaviour {
 	
 
 	void OnTriggerEnter(Collider other) {
+		//SessionManager.GetInstance ().PlayNotificationSound();
 		Invoke("ActivateFunction",1f);
 	}
 
@@ -13,6 +14,6 @@ public class GUITriggerRestart : MonoBehaviour {
 	}
 
 	void ActivateFunction() {
-		ObjectGenerator.GetInstance().RestartSession();
+		SessionManager.GetInstance().RestartSession();
 	}
 }

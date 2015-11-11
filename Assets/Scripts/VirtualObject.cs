@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class VirtualObject : MonoBehaviour {
@@ -37,7 +37,7 @@ public class VirtualObject : MonoBehaviour {
 	void ObjectCaught() {
 		if (!isCaught) {
 			Debug.Log ("Object caught!!");
-			ObjectGenerator.isTimerStopped = true;
+			SessionManager.isTimerStopped = true;
 			GetComponent<AudioSource> ().Play ();
 			StartCoroutine (ObjectCaughtCoroutine ());
 			isCaught = true;
@@ -62,7 +62,7 @@ public class VirtualObject : MonoBehaviour {
 				Mathf.Lerp(scaleMultiplier * originalScale.z, 0f, (Time.time - startTime) / (animationTime / 2f)));
 			yield return null;
 		}
-		ObjectGenerator.GetInstance().CreateNewObject();
+		SessionManager.GetInstance().CreateNewObject();
 		Destroy (gameObject);
 	}
 }

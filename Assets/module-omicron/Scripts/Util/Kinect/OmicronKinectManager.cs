@@ -34,7 +34,6 @@ using omicronConnector;
 public class OmicronKinectManager : OmicronEventClient {
 
 	public GameObject therapist;
-	public GameObject menuManager;
 	public FlatAvatarController patient;
 
 	public Vector3 kinectSensorPosition;
@@ -49,11 +48,12 @@ public class OmicronKinectManager : OmicronEventClient {
 
 	public GameObject[] voiceCommandListeners;
 
+	private SessionManager sessionManager;
+
 	// Use this for initialization
 	new void Start () {
 		trackedBodies = new Dictionary<int, float> ();
-		voiceCommandListeners = new GameObject[voiceListeners];
-		voiceCommandListeners [0] = menuManager;
+		sessionManager = SessionManager.GetInstance();
 		InitOmicron ();
 	}
 
@@ -79,13 +79,12 @@ public class OmicronKinectManager : OmicronEventClient {
 			string speechString = e.getExtraDataString();
 			float speechConfidence = e.posx;
 
-			//Debug.Log("Received Speech: '" + speechString + "' at " +speechConfidence+ " confidence" );
+			Debug.Log("Received Speech: '" + speechString + "' at " +speechConfidence+ " confidence" );
 
-			if( speechConfidence >= minimumSpeechConfidence ) {
-				foreach( GameObject voiceListeners in voiceCommandListeners ) {
-					voiceListeners.SendMessage("OnVoiceCommand", speechString);
-				}
+			if(speechConfidence > minimumSpeechConfidence) {
+				sessionManager.VoiceCommand(speechString);
 			}
+
 		}
 	}
 
@@ -104,16 +103,14 @@ public class OmicronKinectManager : OmicronEventClient {
 		int minSourceBody = patient.bodyId;
 
 		foreach (int bodyId in trackedBodies.Keys) {
-			if ( trackedBodies[bodyId] < minZ && bodyId > 1 ) {
+			if ( trackedBodies[bodyId] < minZ && bodyId > 1 && trackedBodies[bodyId]>0) {
 				minZ = trackedBodies[bodyId];
 				minSourceBody = bodyId;
 			}
 		}
 
-		if(minSourceBody != patient.bodyId) {
-			Debug.Log("Patient switched!!! New id: " + minSourceBody + ", z: " + minZ);
-		}
-		patient.bodyId = minSourceBody;
+		//Debug.Log("Patient switched!!! New id: " + minSourceBody + ", z: " + minZ);
+		patient.SetBodyId(minSourceBody);
 
 	}
 

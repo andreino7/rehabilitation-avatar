@@ -4,9 +4,10 @@ using System.Collections;
 using System;
 using System.IO;
 
-public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
+public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
-	public GameObject objectPrefab;
+	public GameObject objectPrefab, menuPanel;
+	public AudioClip victorySound, activationSound;
 
 	public int numberOfObjects = 10;
 	public float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
@@ -14,26 +15,31 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	public Text labelLeft, labelRight; 
 	public GameObject sessionCompleteAnimation;
 
-	private static ObjectGenerator instance;
+	private static SessionManager instance;
 	private int currentObject = 0;
 	private float xAvatarSize = 0.3f;
 
 	private float elapsedTime = 0f;
+	private GameObject patient;
+
+	private AudioSource audio;
 
 	static public bool isTimerStopped = false;
 
-	private ObjectGenerator () {}
+	private SessionManager () {}
 
 	void Awake () {
 		instance = this;
 	}
 
-	public static ObjectGenerator GetInstance () {
+	public static SessionManager GetInstance () {
 		return instance;
 	}
 
 	// Use this for initialization
 	void Start () {
+		patient = GameObject.FindGameObjectWithTag("Patient");
+		audio = GetComponent<AudioSource>();
 		CreateNewObject ();
 	}
 
@@ -46,7 +52,7 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 				return;
 			}
 			isTimerStopped = false;
-			Vector3 newPosition = new Vector3 (UnityEngine.Random.Range(-horizontalBounds, horizontalBounds), yOffset + UnityEngine.Random.Range(-verticalBounds, verticalBounds), transform.position.z + 0.1f);
+			Vector3 newPosition = new Vector3 (UnityEngine.Random.Range(-horizontalBounds, horizontalBounds), yOffset + UnityEngine.Random.Range(-verticalBounds, verticalBounds), patient.transform.position.z + 0.1f);
 			if(Mathf.Abs(newPosition.x) < xAvatarSize) {
 				if (newPosition.x > 0)
 					newPosition.x = newPosition.x + xAvatarSize;
@@ -88,8 +94,9 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 
 	[getReal3D.RPC]
 	private void EndSessionRPC() {
-		GetComponent<AudioSource>().Play();
-		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, transform.position, Quaternion.identity);
+		audio.clip = victorySound;
+		audio.Play();
+		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
 
 	}
 
@@ -118,4 +125,27 @@ public class ObjectGenerator : getReal3D.MonoBehaviourWithRpc {
 	private void RestartSessionRPC(){
 		Application.LoadLevel("Main");
 	}
+	public void VoiceCommand(string command) {
+		audio.clip = activationSound;
+		audio.Play();
+		switch(command) {
+			case "RESTART": Invoke("RestartSession", 1f); break;
+			case "MENU": ToggleMenu(); break;
+		}
+	}
+
+	public void ToggleMenu() {
+		if(menuPanel.activeSelf) {
+			menuPanel.SetActive(false);
+		}
+		else {
+			menuPanel.SetActive(true);
+		}
+	}
+
+	public void PlayNotificationSound() {
+		audio.clip = activationSound;
+		audio.Play();
+	}
+
 }

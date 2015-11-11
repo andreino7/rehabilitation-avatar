@@ -103,8 +103,8 @@ public class FlatAvatarController : OmicronEventClient {
 		UpdateJointPosition (leftHand, e, 9);
 		UpdateJointPosition (rightHand, e, 19);
 
-		UpdateJointPosition (leftShoulder, e, 6, new Vector3(-0.1f, -0.1f, 0f));
-		UpdateJointPosition (rightShoulder, e, 16, new Vector3(0.1f, -0.1f, 0f));
+		UpdateJointPosition (leftShoulder, e, 6); //, new Vector3(-0.1f, -0.1f, 0f));
+		UpdateJointPosition (rightShoulder, e, 16); //, new Vector3(0.1f, -0.1f, 0f));
 
 		leftHandState = FetchHandState(e.orw);
 		rightHandState = FetchHandState(e.orx);
@@ -141,7 +141,7 @@ public class FlatAvatarController : OmicronEventClient {
 	}
 
 	IEnumerator LogPositionsCoroutine() {
-		while(!ObjectGenerator.isTimerStopped) {
+		while(!SessionManager.isTimerStopped) {
 			yield return new WaitForSeconds(0.05f);
 			JSONNode newPos = new JSONClass();
 			newPos["time"].AsFloat = Time.time;
@@ -174,9 +174,13 @@ public class FlatAvatarController : OmicronEventClient {
 				KillAvatar();
 			} else {
 				bodyId = -1;
-				lastUpdate = int.MaxValue;
 			}
 		}
+	}
+
+	public void SetBodyId(int newBodyId) {
+		bodyId = newBodyId;
+		lastUpdate = Time.time;
 	}
 
 }
