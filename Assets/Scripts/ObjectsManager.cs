@@ -6,6 +6,9 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 	protected int currentObject = 0;
 	protected int numberOfObjects;
 
+	protected GameObject virtualObject;
+	//protected float 
+
 	protected float xAvatarSize = 0.3f;
 
 	protected Object objectPrefab;
@@ -20,8 +23,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 				Invoke("EndSession", 1f);
 				return;
 			}
-
-			SessionManager.GetInstance ().StopTimer();
+			SessionManager.GetInstance ().StartTimer();
 			Vector3 newPosition = this.PositionNewObject();
 			Quaternion newQuaternion = Quaternion.Euler (UnityEngine.Random.Range (0f, 360f), UnityEngine.Random.Range (0.0f, 360f), UnityEngine.Random.Range (0.0f, 360f));
 			getReal3D.RpcManager.call("CreateNewObjectRPC", newPosition, newQuaternion);
@@ -34,12 +36,16 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		SessionManager.GetInstance().EndSession();
 	}
 
+	public int GetNumberOfObjects () {
+		return numberOfObjects;
+	}
+
 	[getReal3D.RPC]
 	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
 		currentObject++;
 		//elapsedTime = Time.time;
 		//labelLeft.text = "Object #" + currentObject;
-		Instantiate (objectPrefab, newPosition, newQuaternion);
+		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
 	}
 
 }

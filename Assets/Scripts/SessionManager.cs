@@ -9,14 +9,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public GameObject objectPrefab, menuPanel;
 	public AudioClip victorySound, activationSound;
 
-	public int numberOfObjects = 10;
-	public float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
 
 	public Text labelLeft, labelRight; 
 	public GameObject sessionCompleteAnimation;
 
 	private static SessionManager instance;
-	private int currentObject = 0;
 	private float xAvatarSize = 0.3f;
 
 	private float elapsedTime = 0f;
@@ -26,8 +23,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private ObjectsManager manager;
 
-	static public bool isTimerStopped = false;
-
+	protected bool isTimerStopped = true;
+	private int numberOfObjects;
 	private SessionManager () {}
 
 	void Awake () {
@@ -43,6 +40,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		audio = GetComponent<AudioSource>();
 		manager = new RandomGenerator ();
+		manager.GetNumberOfObjects ();
 		manager.NextObject ();
 	}
 	
