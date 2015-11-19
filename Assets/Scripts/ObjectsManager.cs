@@ -10,13 +10,12 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected Object objectPrefab;
 
-	void Start() {
+	protected void Start() {
 		objectPrefab = Resources.Load ("BasicObject");
 	}
 
-	protected void NextObject() {
+	public void NextObject() {
 		if (getReal3D.Cluster.isMaster) {
-			
 			if (currentObject == numberOfObjects) {
 				Invoke("EndSession", 1f);
 				return;
@@ -29,7 +28,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		}
 	}
 
-	virtual protected Vector3 PositionNewObject ();
+	virtual protected Vector3 PositionNewObject () { return Vector3.zero; }
 
 	protected void EndSession() {
 		SessionManager.GetInstance().EndSession();

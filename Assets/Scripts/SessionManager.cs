@@ -24,6 +24,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private AudioSource audio;
 
+	private ObjectsManager manager;
+
 	static public bool isTimerStopped = false;
 
 	private SessionManager () {}
@@ -40,37 +42,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	void Start () {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		audio = GetComponent<AudioSource>();
-		CreateNewObject ();
+		manager = new RandomGenerator ();
+		manager.NextObject ();
 	}
+	
 
-	public void CreateNewObject() {
-
-		if(getReal3D.Cluster.isMaster) {
-			
-			if (currentObject == numberOfObjects) {
-				Invoke("EndSession", 1f);
-				return;
-			}
-			isTimerStopped = false;
-			Vector3 newPosition = new Vector3 (UnityEngine.Random.Range(-horizontalBounds, horizontalBounds), yOffset + UnityEngine.Random.Range(-verticalBounds, verticalBounds), patient.transform.position.z + 0.1f);
-			if(Mathf.Abs(newPosition.x) < xAvatarSize) {
-				if (newPosition.x > 0)
-					newPosition.x = newPosition.x + xAvatarSize;
-				else if(newPosition.x < 0)
-					newPosition.x = newPosition.x - xAvatarSize;
-			}
-			Quaternion newQuaternion = Quaternion.Euler (UnityEngine.Random.Range (0f, 360f), UnityEngine.Random.Range (0.0f, 360f), UnityEngine.Random.Range (0.0f, 360f));
-			getReal3D.RpcManager.call("CreateNewObjectRPC", newPosition, newQuaternion);
-		}
-	}
-
-	[getReal3D.RPC]
-	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
-		currentObject++;
-		elapsedTime = Time.time;
-		labelLeft.text = "Object #" + currentObject;
-		Instantiate (objectPrefab, newPosition, newQuaternion);
-	}
 
 	void Update() {
 		if(!isTimerStopped) UpdateTime();
@@ -156,4 +132,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		audio.Play();
 	}
 
+	public Vector3 GetPatientPosition() {
+		return patient.transform.position;
+	}
+
+	public void CreateNewObject() {
+		manager.NextObject ();
+	}
 }
