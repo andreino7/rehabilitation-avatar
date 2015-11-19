@@ -15,6 +15,8 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected float xAvatarSize = 0.3f;
 
+	protected float allowedTime = 10f;
+
 	protected Object objectPrefab;
 
 	protected void Start() {
@@ -59,8 +61,21 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 			JSONNode obj = new JSONClass ();
 			obj ["id"].AsInt = currentObject;
 			obj ["time"].AsFloat = caughtTime - appearTime;
+			obj["reached"] = "Yes";
 			objects.Add (obj);
 
+			NextObject ();
+		}
+	}
+
+	public void ObjectNotCaught(float expirationTime) {
+		if (getReal3D.Cluster.isMaster) {
+			JSONNode obj = new JSONClass ();
+			obj ["id"].AsInt = currentObject;
+			obj ["time"].AsFloat = expirationTime - appearTime;
+			obj["reached"] = "No";
+			objects.Add (obj);
+			
 			NextObject ();
 		}
 	}
@@ -68,5 +83,12 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 	public JSONArray GetObjectsData() {
 		return objects;
 	}
-	
+
+	void Update() {
+		if (currentObject > 0 && virtualObject != null && Time.time > allowedTime + appearTime) {
+			Destroy(virtualObject);
+			ObjectNotCaught(Time.time);
+		}
+	}
+
 }
