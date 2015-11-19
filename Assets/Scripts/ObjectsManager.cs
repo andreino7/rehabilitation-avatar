@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
 
 public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected int currentObject = 0;
 	protected int numberOfObjects;
+
+	protected JSONArray objects = new JSONArray();
+	protected float appearTime;
 
 	protected GameObject virtualObject;
 	//protected float 
@@ -46,6 +50,23 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		//elapsedTime = Time.time;
 		//labelLeft.text = "Object #" + currentObject;
 		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
+		virtualObject.GetComponent<VirtualObject> ().manager = this;
+		appearTime = Time.time;
 	}
 
+	public void ObjectCaught(float caughtTime) {
+		if (getReal3D.Cluster.isMaster) {
+			JSONNode obj = new JSONClass ();
+			obj ["id"].AsInt = currentObject;
+			obj ["time"].AsFloat = caughtTime - appearTime;
+			objects.Add (obj);
+
+			NextObject ();
+		}
+	}
+
+	public JSONArray GetObjectsData() {
+		return objects;
+	}
+	
 }

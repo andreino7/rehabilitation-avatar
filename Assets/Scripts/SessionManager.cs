@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections;
 using System;
 using System.IO;
+using SimpleJSON;
 
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
@@ -24,7 +25,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private ObjectsManager manager;
 
 	protected bool isTimerStopped = true;
-	private int numberOfObjects;
+
+	protected JSONNode outputData;
+
+
 	private SessionManager () {}
 
 	void Awake () {
@@ -42,6 +46,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		manager = new RandomGenerator ();
 		manager.GetNumberOfObjects ();
 		manager.NextObject ();
+		InitializeOutput ();
 	}
 	
 
@@ -64,10 +69,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public void EndSession() {
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
-		FlatAvatarController.outputData["elapsedTime"].AsFloat = elapsedTime;
-		FlatAvatarController.outputData["numberOfObjects"].AsInt = numberOfObjects;
-		FlatAvatarController.outputData["positions"] = FlatAvatarController.positions;
-		if(getReal3D.Cluster.isMaster) WriteLogFile();
+		if (getReal3D.Cluster.isMaster) {
+			FinalizeLogFile ();
+		}
 		if(getReal3D.Cluster.isMaster) {
 			getReal3D.RpcManager.call("EndSessionRPC");
 			//Invoke ("ChangeScene",4f);
@@ -91,13 +95,6 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		Application.LoadLevel ("Results");
 	}
 
-	private void WriteLogFile() {
-		using (StreamWriter sw = new StreamWriter("C:\\Users\\evldemo\\Desktop\\Rehabilitation Log\\log.txt")) {
-			sw.Write(FlatAvatarController.outputData.ToString());
-			sw.Close();
-		}
-		Debug.Log(FlatAvatarController.outputData.ToString());
-	}
 
 	public void RestartSession(){
 		getReal3D.RpcManager.call("RestartSessionRPC");
@@ -136,5 +133,29 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public void CreateNewObject() {
 		manager.NextObject ();
+	}
+
+	public bool IsTimerStopped() {
+		return isTimerStopped;
+	}
+
+	protected void InitializeOutput() {
+		outputData = new JSONClass();
+		outputData["patientId"] = PlayerPrefs.GetString("PatientId");
+		outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
+	}
+
+	private void FinalizeLogFile() {
+
+		outputData["elapsedTime"].AsFloat = elapsedTime;
+		outputData ["numberOfObjects"].AsInt = manager.GetNumberOfObjects ();
+		outputData ["objects"] = manager.GetObjectsData ();
+		outputData["positions"] = patient.GetComponent<FlatAvatarController>().GetPositionsLog();
+
+		using (StreamWriter sw = new StreamWriter("C:\\Users\\evldemo\\Desktop\\Rehabilitation Log\\log.txt")) {
+			sw.Write(outputData.ToString());
+			sw.Close();
+		}
+		Debug.Log(outputData.ToString());
 	}
 }

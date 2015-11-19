@@ -6,8 +6,8 @@ using SimpleJSON;
 
 public class FlatAvatarController : OmicronEventClient {
 
-	static public JSONNode outputData;
-	static public JSONArray positions = new JSONArray();
+	protected float samplingRate = 5f;
+	protected JSONArray positions = new JSONArray();
 
 	public bool isThirdPerson = true;
 	public bool isPatient = false;
@@ -41,9 +41,6 @@ public class FlatAvatarController : OmicronEventClient {
 		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
 		omicronManager.AddClient(this);
 		if(isPatient) {
-			outputData = new JSONClass();
-			outputData["patientId"] = PlayerPrefs.GetString("PatientId");
-			outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
 			StartCoroutine(LogPositionsCoroutine());
 		}
 	}
@@ -141,8 +138,8 @@ public class FlatAvatarController : OmicronEventClient {
 	}
 
 	IEnumerator LogPositionsCoroutine() {
-		while(!SessionManager.isTimerStopped) {
-			yield return new WaitForSeconds(0.05f);
+		while(!SessionManager.GetInstance().IsTimerStopped()) {
+			yield return new WaitForSeconds(1f / samplingRate);
 			JSONNode newPos = new JSONClass();
 			newPos["time"].AsFloat = Time.time;
 
@@ -150,11 +147,32 @@ public class FlatAvatarController : OmicronEventClient {
 			leftHandPos[0].AsFloat = leftHand.transform.position.x;
 			leftHandPos[1].AsFloat = leftHand.transform.position.y;
 			leftHandPos[2].AsFloat = leftHand.transform.position.z;
-
 			newPos["leftHand"] = leftHandPos;
+
+			JSONArray rightHandPos = new JSONArray();
+			rightHandPos[0].AsFloat = rightHand.transform.position.x;
+			rightHandPos[1].AsFloat = rightHand.transform.position.y;
+			rightHandPos[2].AsFloat = rightHand.transform.position.z;
+			newPos["rightHand"] = rightHandPos;
+
+			JSONArray leftElbowPos = new JSONArray();
+			leftElbowPos[0].AsFloat = leftElbow.transform.position.x;
+			leftElbowPos[1].AsFloat = leftElbow.transform.position.y;
+			leftElbowPos[2].AsFloat = leftElbow.transform.position.z;
+			newPos["leftElbow"] = leftElbowPos;
+			
+			JSONArray rightElbowPos = new JSONArray();
+			rightElbowPos[0].AsFloat = rightElbow.transform.position.x;
+			rightElbowPos[1].AsFloat = rightElbow.transform.position.y;
+			rightElbowPos[2].AsFloat = rightElbow.transform.position.z;
+			newPos["rightElbow"] = rightElbowPos;
 
 			positions.Add(newPos);
 		}
+	}
+
+	public JSONNode GetPositionsLog() {
+		return positions;
 	}
 
 	private void KillAvatar() {
