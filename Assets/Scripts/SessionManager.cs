@@ -76,11 +76,19 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		if(!isTimerStopped) UpdateTime();
 	}
 
+	public void StopTimer() {
+		isTimerStopped = true;
+	}
+
+	public void StartTimer() {
+		isTimerStopped = false;
+	}
+
 	private void UpdateTime() {
 		labelRight.text = "Time: " + (Time.time-elapsedTime);
 	}
 
-	private void EndSession() {
+	public void EndSession() {
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		FlatAvatarController.outputData["elapsedTime"].AsFloat = elapsedTime;
 		FlatAvatarController.outputData["numberOfObjects"].AsInt = numberOfObjects;
