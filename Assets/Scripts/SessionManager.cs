@@ -53,6 +53,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	void Update() {
 		if(!isTimerStopped) UpdateTime();
+		//Pressing R2
+		if(CAVE2Manager.GetButtonDown(CAVE2Manager.Button.Button7)){
+			ToggleMenu();
+			Debug.Log("Arturo scelgo te");
+		}
 	}
 
 	public void StopTimer() {
