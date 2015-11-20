@@ -43,7 +43,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	void Start () {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		audio = GetComponent<AudioSource>();
-		manager = new RandomGenerator ();
+		manager = gameObject.AddComponent<RandomGenerator> ();
 		manager.GetNumberOfObjects ();
 		manager.NextObject ();
 		InitializeOutput ();

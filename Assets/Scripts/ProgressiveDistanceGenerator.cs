@@ -19,7 +19,7 @@ public class ProgressiveDistanceGenerator : ObjectsManager {
 	}
 	
 	Vector3 PositionNewObject() {
-		Vector3 newPosition;
+		Vector3 newPosition = new Vector3();
 		float z = SessionManager.GetInstance ().GetPatientPosition ().z + 0.1f;
 		switch (direction) {
 		case Direction.LEFT:
