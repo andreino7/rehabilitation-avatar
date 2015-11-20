@@ -4,37 +4,60 @@ using System.Collections;
 public class ProgressiveDistanceGenerator : ObjectsManager {
 	public enum Direction{LEFT, RIGHT, UPLEFT, UPRIGHT};
 	protected float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
-	protected Direction direction;
+	protected float increment = 0.2f;
+	protected Direction direction = Direction.LEFT;
 	private float currentX, currentY;
 	
-	public ProgressiveDistanceGenerator(Direction direction) {
+	public ProgressiveDistanceGenerator() {
 		numberOfObjects = 10;
-		this.direction = direction;
+		this.direction = Direction.LEFT;
 		if (direction == Direction.LEFT || direction == Direction.UPLEFT) {
 			currentX = -xAvatarSize;
 		} else {
 			currentX = xAvatarSize;
 		}
-		currentY = 0;
+		currentY = 2;
 	}
 	
-	Vector3 PositionNewObject() {
+	protected override Vector3 PositionNewObject() {
+		Debug.Log("here");
 		Vector3 newPosition = new Vector3();
 		float z = SessionManager.GetInstance ().GetPatientPosition ().z + 0.1f;
 		switch (direction) {
 		case Direction.LEFT:
-			newPosition = new Vector3 (--currentX,currentY,z);
+			currentX = currentX - increment;
+			newPosition = new Vector3 (currentX,currentY,z);
 			break;
 		case Direction.RIGHT:
-			newPosition = new Vector3 (++currentX,currentY,z);
+			currentX = currentX + increment;
+			newPosition = new Vector3 (currentX,currentY,z);
 			break;
 		case Direction.UPLEFT:
-			newPosition = new Vector3 (--currentX,++currentY,z);
+			currentX = currentX - increment;
+			currentY = currentY + increment;
+			newPosition = new Vector3 (currentX,currentY,z);
 			break;
 		case Direction.UPRIGHT:
-			newPosition = new Vector3 (++currentX,++currentY,z);
+			currentX = currentX + increment;
+			currentY = currentY + increment;
+			newPosition = new Vector3 (currentX,currentY,z);
 			break;
 		}
 		return newPosition;
 	}
+
+	protected override void MakeRPCCall(Vector3 newPosition, Quaternion newQuaternion) {
+		getReal3D.RpcManager.call("CreateNewObjectRPC", newPosition, newQuaternion);
+	}
+	
+	
+	[getReal3D.RPC]
+	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
+		currentObject++;
+		//labelLeft.text = "Object #" + currentObject;
+		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
+		virtualObject.GetComponent<VirtualObject> ().manager = this;
+		appearTime = Time.time;
+	}
+
 }

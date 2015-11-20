@@ -7,7 +7,7 @@ using SimpleJSON;
 
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
-	public GameObject objectPrefab, menuPanel;
+	public GameObject objectPrefab, menuPanel, trainingPanel;
 	public AudioClip victorySound, activationSound;
 
 
@@ -19,6 +19,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private float elapsedTime = 0f;
 	private GameObject patient;
+	private float lastButtonUpdateTime;
+	private float antiBouncing = 0.05f;
 
 	private AudioSource audio;
 
@@ -43,14 +45,17 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	void Start () {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		audio = GetComponent<AudioSource>();
-		manager = gameObject.AddComponent<RandomGenerator> ();
-		manager.GetNumberOfObjects ();
-		manager.NextObject ();
-		InitializeOutput ();
+		manager = gameObject.AddComponent<ProgressiveDistanceGenerator> ();
+
+		CreateFirstObject();
 	}
 	
 
-	 
+	public void CreateFirstObject() {
+		manager.NextObject ();
+		elapsedTime = Time.time;
+		InitializeOutput ();
+	}
 
 
 	public void StopTimer() {
@@ -63,6 +68,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private void UpdateTime() {
 		labelRight.text = "Time: " + (Time.time-elapsedTime);
+	}
+
+	public void UpdateCurrentObject(int objectNumber) {
+		labelLeft.text = "Object #" + (objectNumber+1);
 	}
 
 	public void EndSession() {
@@ -93,9 +102,17 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		Application.LoadLevel ("Results");
 	}
 
+	public void ChangeTrainingMode () {
+		getReal3D.RpcManager.call("ChangeTrainingModeRPC");
+	}
 
 	public void RestartSession(){
 		getReal3D.RpcManager.call("RestartSessionRPC");
+	}
+
+	[getReal3D.RPC]
+	private void ChangeTrainingModeRPC(){
+		Application.LoadLevel("");
 	}
 
 	[getReal3D.RPC]
@@ -112,11 +129,21 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public void ToggleMenu() {
-		if(menuPanel.activeSelf) {
-			menuPanel.SetActive(false);
+		ToggleMenus(menuPanel);
+	}
+
+	public void ToggleTrainingMode() {
+		ToggleMenus(trainingPanel);
+
+	}
+
+	private void ToggleMenus (GameObject menu) {
+		menu.GetComponent<ScrollableMenu>().SetActivationTime(Time.time);
+		if(menu.activeSelf) {
+			menu.SetActive(false);
 		}
 		else {
-			menuPanel.SetActive(true);
+			menu.SetActive(true);
 		}
 	}
 
@@ -129,9 +156,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		return patient.transform.position;
 	}
 
-	public void CreateNewObject() {
-		manager.NextObject ();
+	public void RestartTimer() {
+		elapsedTime = Time.time;
 	}
+	
 
 	public bool IsTimerStopped() {
 		return isTimerStopped;
@@ -158,6 +186,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	void Update() {
+		if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button3)){
+			if (lastButtonUpdateTime + antiBouncing < Time.time) {
+				lastButtonUpdateTime = Time.time;
+				if (!menuPanel.activeSelf && !trainingPanel.activeSelf) {
+					ToggleMenus(menuPanel);
+				}
+			}
+		}
 		if(!isTimerStopped) UpdateTime();
 	}
 }

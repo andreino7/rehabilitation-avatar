@@ -9,7 +9,7 @@ public class RandomGenerator : ObjectsManager {
 		numberOfObjects = 10;
 	}
 
-	Vector3 PositionNewObject() {
+	protected override Vector3 PositionNewObject() {
 		Vector3 newPosition = new Vector3 (UnityEngine.Random.Range(-horizontalBounds, horizontalBounds), yOffset + UnityEngine.Random.Range(-verticalBounds, verticalBounds), SessionManager.GetInstance ().GetPatientPosition().z + 0.1f);
 		if(Mathf.Abs(newPosition.x) < xAvatarSize) {
 			if (newPosition.x > 0)
@@ -18,6 +18,19 @@ public class RandomGenerator : ObjectsManager {
 				newPosition.x = newPosition.x - xAvatarSize;
 		}
 		return newPosition;
+	}
+
+	protected override void MakeRPCCall(Vector3 newPosition, Quaternion newQuaternion) {
+		getReal3D.RpcManager.call("CreateNewObjectRPC", newPosition, newQuaternion);
+	}
+
+
+	[getReal3D.RPC]
+	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
+		currentObject++;
+		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
+		virtualObject.GetComponent<VirtualObject> ().manager = this;
+		appearTime = Time.time;
 	}
 	
 }

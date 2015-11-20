@@ -18,7 +18,8 @@ public class TrainingSelector : getReal3D.MonoBehaviourWithRpc {
 	public void InsertPatientId() {
 		if(patientId.text != "" && getReal3D.Cluster.isMaster) {
 			firstPanel.SetActive(false);
-			secondPanel.SetActive(true);
+			//secondPanel.SetActive(true);
+			getReal3D.RpcManager.call("SkipTrainingModeSelection");
 		}
 	}
 
@@ -31,6 +32,12 @@ public class TrainingSelector : getReal3D.MonoBehaviourWithRpc {
 	private void StartTraining() {
 		PlayerPrefs.SetString("PatientId", patientId.text);
 		PlayerPrefs.SetInt("TrainingModeId", trainingModeId);
+		Application.LoadLevel("Main");
+	}
+
+	[getReal3D.RPC]
+	private void SkipTrainingModeSelection() {
+		PlayerPrefs.SetString("PatientId", patientId.text);
 		Application.LoadLevel("Main");
 	}
 }

@@ -171,7 +171,7 @@ public class FlatAvatarController : OmicronEventClient {
 		}
 	}
 
-	public JSONNode GetPositionsLog() {
+	public JSONArray GetPositionsLog() {
 		return positions;
 	}
 

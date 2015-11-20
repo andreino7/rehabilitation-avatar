@@ -22,6 +22,6 @@ public class UserInterface : MonoBehaviour {
 				lastButtonUpdateTime = Time.time;
 				SessionManager.GetInstance().ToggleMenu();
 			}
-		}
+		} 
 	}
 }

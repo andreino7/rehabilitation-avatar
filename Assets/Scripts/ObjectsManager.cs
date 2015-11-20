@@ -11,7 +11,6 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 	protected float appearTime;
 
 	protected GameObject virtualObject;
-	//protected float 
 
 	protected float xAvatarSize = 0.3f;
 
@@ -21,6 +20,8 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected void Start() {
 		objectPrefab = Resources.Load ("BasicObject");
+		Debug.Log (objectPrefab);
+
 	}
 
 	public void NextObject() {
@@ -30,13 +31,15 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 				return;
 			}
 			SessionManager.GetInstance ().StartTimer();
-			Vector3 newPosition = this.PositionNewObject();
+			Vector3 newPosition = PositionNewObject();
 			Quaternion newQuaternion = Quaternion.Euler (UnityEngine.Random.Range (0f, 360f), UnityEngine.Random.Range (0.0f, 360f), UnityEngine.Random.Range (0.0f, 360f));
-			getReal3D.RpcManager.call("CreateNewObjectRPC", newPosition, newQuaternion);
+			MakeRPCCall(newPosition, newQuaternion);
+			SessionManager.GetInstance().UpdateCurrentObject(currentObject);
 		}
 	}
 
 	virtual protected Vector3 PositionNewObject () { return Vector3.zero; }
+	virtual protected void MakeRPCCall (Vector3 newPosition, Quaternion newQuaternion) {}
 
 	protected void EndSession() {
 		SessionManager.GetInstance().EndSession();
@@ -46,15 +49,6 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		return numberOfObjects;
 	}
 
-	[getReal3D.RPC]
-	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
-		currentObject++;
-		//elapsedTime = Time.time;
-		//labelLeft.text = "Object #" + currentObject;
-		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
-		virtualObject.GetComponent<VirtualObject> ().manager = this;
-		appearTime = Time.time;
-	}
 
 	public void ObjectCaught(float caughtTime) {
 		if (getReal3D.Cluster.isMaster) {
@@ -63,7 +57,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 			obj ["time"].AsFloat = caughtTime - appearTime;
 			obj["reached"] = "Yes";
 			objects.Add (obj);
-
+			SessionManager.GetInstance().RestartTimer();
 			NextObject ();
 		}
 	}
@@ -75,7 +69,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 			obj ["time"].AsFloat = expirationTime - appearTime;
 			obj["reached"] = "No";
 			objects.Add (obj);
-			
+			SessionManager.GetInstance().RestartTimer();
 			NextObject ();
 		}
 	}
