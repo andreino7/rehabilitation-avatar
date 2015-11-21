@@ -9,7 +9,7 @@ public class ProgressiveDistanceGenerator : ObjectsManager {
 	private float currentX, currentY;
 	
 	public ProgressiveDistanceGenerator() {
-		numberOfObjects = 10;
+		numberOfObjects = 3;
 		this.direction = Direction.LEFT;
 		if (direction == Direction.LEFT || direction == Direction.UPLEFT) {
 			currentX = -xAvatarSize;
@@ -53,8 +53,6 @@ public class ProgressiveDistanceGenerator : ObjectsManager {
 	
 	[getReal3D.RPC]
 	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
-		currentObject++;
-		//labelLeft.text = "Object #" + currentObject;
 		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
 		virtualObject.GetComponent<VirtualObject> ().manager = this;
 		appearTime = Time.time;

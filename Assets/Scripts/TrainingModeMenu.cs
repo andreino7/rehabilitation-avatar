@@ -15,18 +15,11 @@ public class TrainingModeMenu : ScrollableMenu {
 			if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button3)){
 				if (lastButtonUpdateTime + antiBouncing < Time.time) {
 					lastButtonUpdateTime = Time.time;
-					if (index >= 0 && index < 3) {
+					Debug.Log(index);
+					if (index > 0 && index <= 3) {
 						SessionManager.GetInstance().ToggleTrainingMode();
-						switch (index) {
-						case 1:
-							break;
-						case 2:
-							break;
-						case 3:
-							break;
-						default:
-							break;
-						}
+						PlayerPrefs.SetInt("TrainingModeId", index);
+						SessionManager.GetInstance().CreateObjectManager();
 					} 
 				}
 			} else if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button2)){

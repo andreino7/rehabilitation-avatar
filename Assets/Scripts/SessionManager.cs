@@ -45,11 +45,25 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	void Start () {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		audio = GetComponent<AudioSource>();
-		manager = gameObject.AddComponent<ProgressiveDistanceGenerator> ();
+		CreateObjectManager();
 
-		CreateFirstObject();
 	}
-	
+
+	public void CreateObjectManager() {
+		if(manager != null) {
+			manager.CancelSession();
+		}
+		if(PlayerPrefs.HasKey("TrainingModeId")) {
+			switch(PlayerPrefs.GetInt("TrainingModeId")) {
+			case 1: manager = gameObject.AddComponent<ProgressiveDistanceGenerator> (); break;
+			case 2: manager = gameObject.AddComponent<RandomGenerator> (); break;
+			case 3: manager = gameObject.AddComponent<ProgressiveDistanceGenerator> (); break;
+			}
+			if(manager != null) {
+				CreateFirstObject();
+			}
+		}
+	}
 
 	public void CreateFirstObject() {
 		manager.NextObject ();
@@ -71,10 +85,12 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public void UpdateCurrentObject(int objectNumber) {
-		labelLeft.text = "Object #" + (objectNumber+1);
+		labelLeft.text = "Object #" + (objectNumber);
 	}
 
 	public void EndSession() {
+		labelRight.text = "";
+		labelLeft.text = "";
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		if (getReal3D.Cluster.isMaster) {
 			FinalizeLogFile ();

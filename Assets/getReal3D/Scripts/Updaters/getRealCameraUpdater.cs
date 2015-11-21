@@ -138,7 +138,7 @@ public class getRealCameraUpdater
     {
         if(m_pluginInitialized) {
             if(applyHeadPosition) {
-                m_transform.localPosition = getReal3D.Input.GetCameraSensor((uint) cameraIndex).position;
+				m_transform.localPosition = getReal3D.Input.GetCameraSensor((uint) cameraIndex).position; //+ new Vector3(0f, 0.5f, 0f);
             }
             if(applyHeadRotation) {
                 m_transform.localRotation = getReal3D.Input.GetCameraSensor((uint) cameraIndex).rotation;

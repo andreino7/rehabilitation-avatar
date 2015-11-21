@@ -6,7 +6,7 @@ public class RandomGenerator : ObjectsManager {
 	protected float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
 
 	public RandomGenerator() {
-		numberOfObjects = 10;
+		numberOfObjects = 3;
 	}
 
 	protected override Vector3 PositionNewObject() {
@@ -27,7 +27,6 @@ public class RandomGenerator : ObjectsManager {
 
 	[getReal3D.RPC]
 	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
-		currentObject++;
 		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
 		virtualObject.GetComponent<VirtualObject> ().manager = this;
 		appearTime = Time.time;
