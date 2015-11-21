@@ -82,7 +82,6 @@ public class FlatAvatarController : OmicronEventClient {
 		}
 
 		int sourceId = (int)e.sourceId;
-
 		if(bodyId != sourceId) {
 			return;
 		}
@@ -181,6 +180,13 @@ public class FlatAvatarController : OmicronEventClient {
 		Destroy(gameObject);
 	}
 
+	private void KillPatient() {
+		SetFlaggedForRemoval();
+		kinectManager.RemoveBody(bodyId);
+		//Destroy(gameObject);
+	}
+
+
 
 	void LateUpdate() {
 		if(!isPatient && kinectManager.GetPatientId() == bodyId) {
@@ -190,7 +196,8 @@ public class FlatAvatarController : OmicronEventClient {
 		if (Time.time > lastUpdate + timeout) {
 			if(!isPatient) {
 				KillAvatar();
-			} else {
+			} else if (bodyId != -1) {
+				KillPatient();
 				bodyId = -1;
 			}
 		}

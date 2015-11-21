@@ -60,7 +60,7 @@ public class OmicronKinectManager : OmicronEventClient {
 	void OnEvent( EventData e ) {
 		if (enableBodyTracking && e.serviceType == EventBase.ServiceType.ServiceTypeMocap ) {
 			int sourceID = (int)e.sourceId;
-			if(sourceID > 1) {
+			if(sourceID > 1000) {
 				float[] jointPosition = new float[3];
 				e.getExtraDataVector3(0, jointPosition);
 				if( !trackedBodies.ContainsKey (sourceID) ) {
@@ -110,6 +110,7 @@ public class OmicronKinectManager : OmicronEventClient {
 		}
 
 		//Debug.Log("Patient switched!!! New id: " + minSourceBody + ", z: " + minZ);
+		patient.kinectManager = this;
 		patient.SetBodyId(minSourceBody);
 
 	}
