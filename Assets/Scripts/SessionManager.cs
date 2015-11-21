@@ -9,7 +9,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public GameObject objectPrefab, menuPanel, trainingPanel;
 	public AudioClip victorySound, activationSound;
-
+	public Text textHint;
 
 	public Text labelLeft, labelRight; 
 	public GameObject sessionCompleteAnimation;
@@ -45,8 +45,27 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	void Start () {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		audio = GetComponent<AudioSource>();
+		//PlayerPrefs.SetInt("TrainingModeId", 1);
 		CreateObjectManager();
 
+	}
+
+	public IEnumerator StartCountdown() {
+		Debug.Log ("Session starting...");
+		DisplayText (".. 5 ..");
+		yield return new WaitForSeconds(1f);
+		DisplayText (".. 4 ..");
+		yield return new WaitForSeconds(1f);
+		DisplayText (".. 3 ..");
+		yield return new WaitForSeconds(1f);
+		DisplayText (".. 2 ..");
+		yield return new WaitForSeconds(1f);
+		DisplayText (".. 1 ..");
+		yield return new WaitForSeconds(1f);
+		CreateFirstObject();
+		DisplayText ("Session started!!");
+		yield return new WaitForSeconds(2f);
+		DisplayText ("");
 	}
 
 	public void CreateObjectManager() {
@@ -55,12 +74,12 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		}
 		if(PlayerPrefs.HasKey("TrainingModeId")) {
 			switch(PlayerPrefs.GetInt("TrainingModeId")) {
-			case 1: manager = gameObject.AddComponent<ProgressiveDistanceGenerator> (); break;
+			case 1: StartCoroutine(Tutorial()); break;
 			case 2: manager = gameObject.AddComponent<RandomGenerator> (); break;
 			case 3: manager = gameObject.AddComponent<ProgressiveDistanceGenerator> (); break;
 			}
-			if(manager != null) {
-				CreateFirstObject();
+			if(manager != null && PlayerPrefs.GetInt("TrainingModeId")!=1) {
+				StartCoroutine(StartCountdown());
 			}
 		}
 	}
@@ -88,9 +107,25 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		labelLeft.text = "Object #" + (objectNumber);
 	}
 
+	public IEnumerator Tutorial() {
+		gameObject.AddComponent<TutorialGenerator> ();
+		DisplayText ("Welcome to the tutorial");
+		yield return new WaitForSeconds (3f);
+		DisplayText ("Now walk forward to the red circle");
+		yield return new WaitForSeconds (2f);
+		while (patient.transform.position.z > 1f) {
+			yield return null;
+		}
+		DisplayText ("This is the position you will have to maintain during your training");
+		yield return new WaitForSeconds (4f);
+		DisplayText ("Now let's start!");
+		yield return new WaitForSeconds (2f);
+	}
+
 	public void EndSession() {
 		labelRight.text = "";
 		labelLeft.text = "";
+		DisplayText ("!! Training Complete !!");
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		if (getReal3D.Cluster.isMaster) {
 			FinalizeLogFile ();
@@ -211,5 +246,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			}
 		}
 		if(!isTimerStopped) UpdateTime();
+	}
+
+	public void DisplayText(string text) {
+		textHint.text = text;
 	}
 }
