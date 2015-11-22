@@ -8,7 +8,6 @@ using SimpleJSON;
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public GameObject objectPrefab, menuPanel, trainingPanel;
-	public AudioClip victorySound, activationSound;
 	public Text textHint;
 
 	public Text labelLeft, labelRight; 
@@ -45,24 +44,20 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	void Start () {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		audio = GetComponent<AudioSource>();
-		//PlayerPrefs.SetInt("TrainingModeId", 1);
+		PlayerPrefs.SetInt("TrainingModeId", 1);
 		CreateObjectManager();
 
 	}
 
 	public IEnumerator StartCountdown() {
 		Debug.Log ("Session starting...");
-		DisplayText (".. 5 ..");
-		yield return new WaitForSeconds(1f);
-		DisplayText (".. 4 ..");
-		yield return new WaitForSeconds(1f);
-		DisplayText (".. 3 ..");
-		yield return new WaitForSeconds(1f);
-		DisplayText (".. 2 ..");
-		yield return new WaitForSeconds(1f);
-		DisplayText (".. 1 ..");
-		yield return new WaitForSeconds(1f);
+		for(int i=5; i>0; i--) {
+			DisplayText (".. " + i + " ..");
+			PlayAudio("Countdown");
+			yield return new WaitForSeconds(1f);
+		}
 		CreateFirstObject();
+		PlayAudio ("Start");
 		DisplayText ("Session started!!");
 		yield return new WaitForSeconds(2f);
 		DisplayText ("");
@@ -108,18 +103,35 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public IEnumerator Tutorial() {
-		gameObject.AddComponent<TutorialGenerator> ();
+		//gameObject.AddComponent<TutorialGenerator> ();
 		DisplayText ("Welcome to the tutorial");
-		yield return new WaitForSeconds (3f);
+
+		patient.SetActive (false);
+		yield return new WaitForSeconds (4f);
+
+		GameObject pat = (GameObject)GameObject.Instantiate (Resources.Load("TutorialPatient"));
+		DisplayText ("The boy on the left will represent your avatar");
+		yield return new WaitForSeconds (4f);
+
+		GameObject the = (GameObject)GameObject.Instantiate (Resources.Load("TutorialTherapist"));
+		DisplayText ("The skeleton on the right will represent your therapist's avatar");
+		yield return new WaitForSeconds (4f);
+
+		Destroy(pat);
+		Destroy (the);
+		patient.SetActive (true);
+
 		DisplayText ("Now walk forward to the red circle");
 		yield return new WaitForSeconds (2f);
-		while (patient.transform.position.z > 1f) {
+		while (patient.transform.position.z < 1f) {
 			yield return null;
 		}
+
 		DisplayText ("This is the position you will have to maintain during your training");
 		yield return new WaitForSeconds (4f);
 		DisplayText ("Now let's start!");
 		yield return new WaitForSeconds (2f);
+
 	}
 
 	public void EndSession() {
@@ -138,10 +150,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	[getReal3D.RPC]
 	private void EndSessionRPC() {
-		audio.clip = victorySound;
-		audio.Play();
+		PlayAudio ("Victory");
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
 
+	}
+
+	public void PlayAudio(string name) {
+		audio.clip = (AudioClip) Resources.Load ("Audio/" + name);
+		audio.Play ();
 	}
 
 	private void ChangeScene(){
@@ -171,8 +187,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		Application.LoadLevel("Main");
 	}
 	public void VoiceCommand(string command) {
-		audio.clip = activationSound;
-		audio.Play();
+		PlayAudio ("Activation");
 		switch(command) {
 			case "RESTART": Invoke("RestartSession", 1f); break;
 			case "MENU": ToggleMenu(); break;
@@ -191,16 +206,13 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private void ToggleMenus (GameObject menu) {
 		menu.GetComponent<ScrollableMenu>().SetActivationTime(Time.time);
 		if(menu.activeSelf) {
+			PlayAudio ("Cancel");
 			menu.SetActive(false);
 		}
 		else {
+			PlayAudio ("Activation");
 			menu.SetActive(true);
 		}
-	}
-
-	public void PlayNotificationSound() {
-		audio.clip = activationSound;
-		audio.Play();
 	}
 
 	public Vector3 GetPatientPosition() {
