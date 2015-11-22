@@ -132,6 +132,57 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		DisplayText ("Now let's start!");
 		yield return new WaitForSeconds (2f);
 
+		DisplayText ("Now reach the ball with your rigth hand and stay in position");
+		UnityEngine.Object objPrefab = Resources.Load ("BasicObject");
+		GameObject obj1 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (0.8f, 1.5f, 2f), Quaternion.identity);
+
+		while(obj1 != null) {
+			yield return null;
+		}
+
+		DisplayText ("Great! Now do the same with your left hand");
+		GameObject obj2 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (-0.8f, 1.5f, 2f), Quaternion.identity);
+
+		while(obj2 != null) {
+			yield return null;
+		}
+
+		PlayAudio ("Victory");
+		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
+		yield return new WaitForSeconds (3f);
+
+		DisplayText ("Good job! Now you'll learn how to open the menu");
+		yield return new WaitForSeconds (3f);
+
+		DisplayText ("Press the 'X' button on the wand controller");
+		while(!menuPanel.activeSelf) {
+			yield return null;
+		}
+
+		DisplayText ("Now use the arrows to select 'Training Mode' and then press 'X' again");
+		while(!trainingPanel.activeSelf) {
+			yield return null;
+		}
+
+		DisplayText ("From here you can select which training mode to start.");
+		yield return new WaitForSeconds (3f);
+
+		DisplayText ("Now press two times the 'O' button on the wand controller to exit the menu.");
+		while(trainingPanel.activeSelf || menuPanel.activeSelf) {
+			yield return null;
+		}
+
+		DisplayText ("Nice! Now we'll try to open the menu using your voice!");
+		yield return new WaitForSeconds (3f);
+
+		DisplayText ("Say aloud the word 'menu' and the menu will appear.");
+		while(!menuPanel.activeSelf) {
+			yield return null;
+		}
+
+		DisplayText ("Good job! Your training is complete");
+		yield return new WaitForSeconds (3f);
+
 	}
 
 	public void EndSession() {

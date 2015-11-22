@@ -65,7 +65,9 @@ public class VirtualObject : MonoBehaviour {
 				Mathf.Lerp(scaleMultiplier * originalScale.z, 0f, (Time.time - startTime) / (animationTime / 2f)));
 			yield return null;
 		}
-		manager.ObjectCaught(caughtTime);
+		if(manager != null) {
+			manager.ObjectCaught(caughtTime);
+		}
 		Destroy (gameObject);
 	}
 }
