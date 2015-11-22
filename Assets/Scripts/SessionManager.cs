@@ -112,28 +112,34 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		GameObject pat = (GameObject)GameObject.Instantiate (Resources.Load("TutorialPatient"));
 		DisplayText ("The boy on the left will represent your avatar");
+		PlayAudio ("Voce00003");
 		yield return new WaitForSeconds (4f);
 
 		GameObject the = (GameObject)GameObject.Instantiate (Resources.Load("TutorialTherapist"));
 		DisplayText ("The skeleton on the right will represent your therapist's avatar");
-		yield return new WaitForSeconds (4f);
+		PlayAudio ("Voce00004");
+		yield return new WaitForSeconds (6f);
 
 		Destroy(pat);
 		Destroy (the);
 		patient.SetActive (true);
 
 		DisplayText ("Now walk forward to the red circle");
-		yield return new WaitForSeconds (2f);
+		PlayAudio ("Voce00005");
+		yield return new WaitForSeconds (4f);
 		while (patient.transform.position.z < 1f) {
 			yield return null;
 		}
 
 		DisplayText ("This is the position you will have to maintain during your training");
-		yield return new WaitForSeconds (4f);
+		PlayAudio ("Voce00006");
+		yield return new WaitForSeconds (5f);
 		DisplayText ("Now let's start!");
+		//Missing audio
 		yield return new WaitForSeconds (2f);
 
-		DisplayText ("Now reach the ball with your rigth hand and stay in position");
+		DisplayText ("Reach the ball with your rigth hand and stay in position");
+		PlayAudio ("Voce00007");
 		UnityEngine.Object objPrefab = Resources.Load ("BasicObject");
 		GameObject obj1 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (0.8f, 1.5f, 2f), Quaternion.identity);
 
@@ -142,6 +148,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		}
 
 		DisplayText ("Great! Now do the same with your left hand");
+		PlayAudio ("Voce00008");
 		GameObject obj2 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (-0.8f, 1.5f, 2f), Quaternion.identity);
 
 		while(obj2 != null) {
@@ -149,39 +156,48 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		}
 
 		PlayAudio ("Victory");
+		DisplayText ("");
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
-		yield return new WaitForSeconds (3f);
+		yield return new WaitForSeconds (4f);
 
 		DisplayText ("Good job! Now you'll learn how to open the menu");
-		yield return new WaitForSeconds (3f);
+		PlayAudio ("Voce00010");
+		yield return new WaitForSeconds (4f);
 
 		DisplayText ("Press the 'X' button on the wand controller");
+		PlayAudio ("Voce00014");
 		while(!menuPanel.activeSelf) {
 			yield return null;
 		}
 
 		DisplayText ("Now use the arrows to select 'Training Mode' and then press 'X' again");
+		PlayAudio ("Voce00015");
 		while(!trainingPanel.activeSelf) {
 			yield return null;
 		}
 
 		DisplayText ("From here you can select which training mode to start.");
+		PlayAudio ("Voce00016");
 		yield return new WaitForSeconds (3f);
 
 		DisplayText ("Now press two times the 'O' button on the wand controller to exit the menu.");
+		PlayAudio ("Voce00017");
 		while(trainingPanel.activeSelf || menuPanel.activeSelf) {
 			yield return null;
 		}
 
 		DisplayText ("Nice! Now we'll try to open the menu using your voice!");
+		PlayAudio ("Voce00019");
 		yield return new WaitForSeconds (3f);
 
 		DisplayText ("Say aloud the word 'menu' and the menu will appear.");
+		PlayAudio ("Voce00020");
 		while(!menuPanel.activeSelf) {
 			yield return null;
 		}
 
 		DisplayText ("Good job! Your training is complete");
+		PlayAudio ("Voce00021");
 		yield return new WaitForSeconds (3f);
 
 	}
