@@ -9,7 +9,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public GameObject objectPrefab, menuPanel, trainingPanel;
 	public Text textHint;
-
+	public Material litMaterial, normalMaterial;
 	public Text labelLeft, labelRight; 
 	public GameObject sessionCompleteAnimation;
 
@@ -151,28 +151,42 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		PlayAudio ("Victory");
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
 		yield return new WaitForSeconds (3f);
-
+		patient.SetActive (false);
 		DisplayText ("Good job! Now you'll learn how to open the menu");
 		yield return new WaitForSeconds (3f);
+		UnityEngine.Object wandPrefab = Resources.Load ("wand");
+		GameObject wand = (GameObject)GameObject.Instantiate (wandPrefab);
+
+		wand.GetComponentsInChildren<Renderer> () [0].material = litMaterial;
 
 		DisplayText ("Press the 'X' button on the wand controller");
+
 		while(!menuPanel.activeSelf) {
 			yield return null;
 		}
+		wand.GetComponentsInChildren<Renderer> () [0].material = normalMaterial;
 
+		wand.GetComponentsInChildren<Renderer> () [3].material = litMaterial;
+		wand.GetComponentsInChildren<Renderer> () [6].material = litMaterial;
 		DisplayText ("Now use the arrows to select 'Training Mode' and then press 'X' again");
 		while(!trainingPanel.activeSelf) {
 			yield return null;
 		}
+		wand.GetComponentsInChildren<Renderer> () [3].material = normalMaterial;
+		wand.GetComponentsInChildren<Renderer> () [6].material = normalMaterial;
 
 		DisplayText ("From here you can select which training mode to start.");
 		yield return new WaitForSeconds (3f);
 
+		wand.GetComponentsInChildren<Renderer> () [1].material = litMaterial;
 		DisplayText ("Now press two times the 'O' button on the wand controller to exit the menu.");
 		while(trainingPanel.activeSelf || menuPanel.activeSelf) {
 			yield return null;
 		}
+		wand.GetComponentsInChildren<Renderer> () [1].material = normalMaterial;
 
+		Destroy (wand);
+		patient.SetActive (true);
 		DisplayText ("Nice! Now we'll try to open the menu using your voice!");
 		yield return new WaitForSeconds (3f);
 
