@@ -105,6 +105,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public IEnumerator Tutorial() {
 		//gameObject.AddComponent<TutorialGenerator> ();
 		DisplayText ("Welcome to the tutorial");
+		PlayAudio ("Voce00002");
 
 		patient.SetActive (false);
 		yield return new WaitForSeconds (4f);
