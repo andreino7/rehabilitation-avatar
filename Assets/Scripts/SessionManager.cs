@@ -127,7 +127,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		DisplayText ("Now walk forward to the red circle");
 		PlayAudio ("Voce00005");
 		yield return new WaitForSeconds (4f);
-		while (patient.transform.position.z < 1f) {
+		while (patient.transform.position.z < 5f) {
 			yield return null;
 		}
 
@@ -141,7 +141,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		DisplayText ("Reach the ball with your rigth hand and stay in position");
 		PlayAudio ("Voce00007");
 		UnityEngine.Object objPrefab = Resources.Load ("BasicObject");
-		GameObject obj1 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (0.8f, 1.5f, 2f), Quaternion.identity);
+		GameObject obj1 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (0.8f, 1.5f, patient.transform.position.z), Quaternion.identity);
 
 		while(obj1 != null) {
 			yield return null;
@@ -149,7 +149,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		DisplayText ("Great! Now do the same with your left hand");
 		PlayAudio ("Voce00008");
-		GameObject obj2 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (-0.8f, 1.5f, 2f), Quaternion.identity);
+		GameObject obj2 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (-0.8f, 1.5f, patient.transform.position.z), Quaternion.identity);
 
 		while(obj2 != null) {
 			yield return null;
@@ -160,20 +160,13 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
 		yield return new WaitForSeconds (3f);
 		patient.SetActive (false);
+		PlayAudio ("Voce00010");
 		DisplayText ("Good job! Now you'll learn how to open the menu");
-		yield return new WaitForSeconds (3f);
+		yield return new WaitForSeconds (5f);
 		UnityEngine.Object wandPrefab = Resources.Load ("wand");
 		GameObject wand = (GameObject)GameObject.Instantiate (wandPrefab);
 
 		wand.GetComponentsInChildren<Renderer> () [0].material = litMaterial;
-
-		DisplayText ("Press the 'X' button on the wand controller");
-
-		yield return new WaitForSeconds (4f);
-
-		DisplayText ("Good job! Now you'll learn how to open the menu");
-		PlayAudio ("Voce00010");
-		yield return new WaitForSeconds (4f);
 
 		DisplayText ("Press the 'X' button on the wand controller");
 		PlayAudio ("Voce00014");
@@ -194,7 +187,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		DisplayText ("From here you can select which training mode to start.");
 		PlayAudio ("Voce00016");
-		yield return new WaitForSeconds (3f);
+		yield return new WaitForSeconds (6f);
 
 		wand.GetComponentsInChildren<Renderer> () [1].material = litMaterial;
 		DisplayText ("Now press two times the 'O' button on the wand controller to exit the menu.");
@@ -208,7 +201,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patient.SetActive (true);
 		DisplayText ("Nice! Now we'll try to open the menu using your voice!");
 		PlayAudio ("Voce00019");
-		yield return new WaitForSeconds (3f);
+		yield return new WaitForSeconds (5f);
 
 		DisplayText ("Say aloud the word 'menu' and the menu will appear.");
 		PlayAudio ("Voce00020");
