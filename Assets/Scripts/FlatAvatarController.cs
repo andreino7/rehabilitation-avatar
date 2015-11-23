@@ -199,6 +199,7 @@ public class FlatAvatarController : OmicronEventClient {
 			} else if (bodyId != -1) {
 				KillPatient();
 				bodyId = -1;
+				gameObject.SetActive(false);
 			}
 		}
 	}

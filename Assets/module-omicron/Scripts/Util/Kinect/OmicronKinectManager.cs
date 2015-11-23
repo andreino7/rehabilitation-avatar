@@ -34,7 +34,10 @@ using omicronConnector;
 public class OmicronKinectManager : OmicronEventClient {
 
 	public GameObject therapist;
-	public FlatAvatarController patient;
+	public GameObject patient;
+
+	public FlatAvatarController patientController;
+
 
 	public Vector3 kinectSensorPosition;
 	public Vector3 kinectSensorTilt;
@@ -63,15 +66,18 @@ public class OmicronKinectManager : OmicronEventClient {
 			if(sourceID > 1000) {
 				float[] jointPosition = new float[3];
 				e.getExtraDataVector3(0, jointPosition);
-				if( !trackedBodies.ContainsKey (sourceID) ) {
-					trackedBodies.Add( sourceID, jointPosition[2]);
-					if (patient.bodyId != -1) {
+				if( !trackedBodies.ContainsKey (sourceID)) {
+					if (patientController.bodyId == -1) {
+						trackedBodies.Add( sourceID, jointPosition[2]);
+					}
+					if (patientController.bodyId != -1  && !SessionManager.GetInstance().isTutorialMode() ) {
+						trackedBodies.Add( sourceID, jointPosition[2]);
 						CreateBody( sourceID );
 					}
 				} else {
 					trackedBodies[sourceID] = jointPosition[2];
 				}
-				if(patient.bodyId == -1) {
+				if(patientController.bodyId == -1) {
 					UpdatePatientBody();
 				}
 			}
@@ -100,7 +106,7 @@ public class OmicronKinectManager : OmicronEventClient {
 	private void UpdatePatientBody () {
 
 		float minZ = int.MaxValue;
-		int minSourceBody = patient.bodyId;
+		int minSourceBody = patientController.bodyId;
 
 		foreach (int bodyId in trackedBodies.Keys) {
 			if ( trackedBodies[bodyId] < minZ && bodyId > 1 && trackedBodies[bodyId]>0) {
@@ -110,13 +116,15 @@ public class OmicronKinectManager : OmicronEventClient {
 		}
 
 		//Debug.Log("Patient switched!!! New id: " + minSourceBody + ", z: " + minZ);
-		patient.kinectManager = this;
-		patient.SetBodyId(minSourceBody);
+		patient.SetActive(true);
+		patientController.kinectManager = this;
+		patientController.SetBodyId(minSourceBody);
+
 
 	}
 
 	public int GetPatientId() {
-		return patient.bodyId;
+		return patientController.bodyId;
 	}
 
 	public void RemoveBody(int bodyId )

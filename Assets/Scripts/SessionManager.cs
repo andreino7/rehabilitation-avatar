@@ -7,19 +7,21 @@ using SimpleJSON;
 
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
-	public GameObject objectPrefab, menuPanel, trainingPanel;
+	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay;
 	public Text textHint;
 	public Material litMaterial, normalMaterial;
 	public Text labelLeft, labelRight; 
 	public GameObject sessionCompleteAnimation;
-
+	private bool tutorialMode = false;
 	private static SessionManager instance;
 	private float xAvatarSize = 0.3f;
 
 	private float elapsedTime = 0f;
-	private GameObject patient;
+	private GameObject patient, patientHips;
 	private float lastButtonUpdateTime;
-	private float antiBouncing = 0.05f;
+	private float antiBouncing = 0.2f;
+
+	private GameObject redCircle;
 
 	private AudioSource audio;
 
@@ -43,14 +45,22 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	// Use this for initialization
 	void Start () {
 		patient = GameObject.FindGameObjectWithTag("Patient");
+		patientHips = GameObject.FindGameObjectWithTag("Hips");
 		audio = GetComponent<AudioSource>();
-		PlayerPrefs.SetInt("TrainingModeId", 1);
 		CreateObjectManager();
 
 	}
 
+	public bool isTutorialMode () {
+		return tutorialMode;
+	}
+
 	public IEnumerator StartCountdown() {
-		Debug.Log ("Session starting...");
+		ShowRedCircle();
+		while (patientHips.transform.position.z < 4.8f) {
+			yield return null;
+		}
+		HideRedCircle();
 		for(int i=5; i>0; i--) {
 			DisplayText (".. " + i + " ..");
 			PlayAudio("Countdown");
@@ -61,6 +71,18 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		DisplayText ("Session started!!");
 		yield return new WaitForSeconds(2f);
 		DisplayText ("");
+	}
+
+	private void ShowRedCircle() {
+		if(redCircle == null) {
+			redCircle = (GameObject) GameObject.Instantiate(Resources.Load("RedCircle"));
+		}
+	}
+
+	private void HideRedCircle() {
+		if(redCircle != null) {
+			Destroy(redCircle);
+		}
 	}
 
 	public void CreateObjectManager() {
@@ -103,7 +125,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public IEnumerator Tutorial() {
-		//gameObject.AddComponent<TutorialGenerator> ();
+		tutorialMode = true;
+		ToggleCamDisplay();
 		DisplayText ("Welcome to the tutorial");
 		PlayAudio ("Voce00002");
 
@@ -125,9 +148,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patient.SetActive (true);
 
 		DisplayText ("Now walk forward to the red circle");
+		ShowRedCircle();
 		PlayAudio ("Voce00005");
-		yield return new WaitForSeconds (4f);
-		while (patient.transform.position.z < 5f) {
+		yield return new WaitForSeconds (6f);
+		while (patientHips.transform.position.z < 4.8f) {
 			yield return null;
 		}
 
@@ -137,11 +161,12 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		DisplayText ("Now let's start!");
 		//Missing audio
 		yield return new WaitForSeconds (2f);
+		HideRedCircle();
 
 		DisplayText ("Reach the ball with your rigth hand and stay in position");
 		PlayAudio ("Voce00007");
 		UnityEngine.Object objPrefab = Resources.Load ("BasicObject");
-		GameObject obj1 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (0.8f, 1.5f, patient.transform.position.z), Quaternion.identity);
+		GameObject obj1 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (0.8f, 1.5f, patientHips.transform.position.z + 0.1f), Quaternion.identity);
 
 		while(obj1 != null) {
 			yield return null;
@@ -149,7 +174,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		DisplayText ("Great! Now do the same with your left hand");
 		PlayAudio ("Voce00008");
-		GameObject obj2 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (-0.8f, 1.5f, patient.transform.position.z), Quaternion.identity);
+		GameObject obj2 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (-0.8f, 1.5f, patientHips.transform.position.z + 0.1f), Quaternion.identity);
 
 		while(obj2 != null) {
 			yield return null;
@@ -157,7 +182,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		PlayAudio ("Victory");
 		DisplayText ("");
-		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
+		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
 		yield return new WaitForSeconds (3f);
 		patient.SetActive (false);
 		PlayAudio ("Voce00010");
@@ -199,6 +224,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		Destroy (wand);
 		patient.SetActive (true);
+		yield return new WaitForSeconds (1f);
 		DisplayText ("Nice! Now we'll try to open the menu using your voice!");
 		PlayAudio ("Voce00019");
 		yield return new WaitForSeconds (5f);
@@ -208,17 +234,21 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		while(!menuPanel.activeSelf) {
 			yield return null;
 		}
-
+		yield return new WaitForSeconds (1f);
 		DisplayText ("Good job! Your training is complete");
+		ToggleCamDisplay();
 		PlayAudio ("Voce00021");
 		yield return new WaitForSeconds (3f);
-
+		tutorialMode = false;
 	}
 
 	public void EndSession() {
 		labelRight.text = "";
 		labelLeft.text = "";
-		DisplayText ("!! Training Complete !!");
+//		DisplayText ("!! Training Complete !!");
+//		DisplayText("Number of objects caught: " + manager.GetNumberOfObjectsCaught () );
+//		DisplayText("Number of objects caught: " + manager.GetNumberOfObjectsCaught () );
+		StartCoroutine(EndSessionMessages());
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		if (getReal3D.Cluster.isMaster) {
 			FinalizeLogFile ();
@@ -229,10 +259,16 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		}
 	}
 
+	public IEnumerator EndSessionMessages() {
+		DisplayText ("!! Training Complete !!");
+		yield return new WaitForSeconds (2f);
+		DisplayText("Mode: " + PlayerPrefs.GetString("TrainingMode") + "\nObjects caught: " + manager.GetNumberOfObjectsCaught () + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(manager.GetTotalElapsedTime()) + "s");
+	}
+
 	[getReal3D.RPC]
 	private void EndSessionRPC() {
 		PlayAudio ("Victory");
-		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patient.transform.position, Quaternion.identity);
+		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
 
 	}
 
@@ -249,24 +285,23 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private void ChangeSceneRPC() {
 		Application.LoadLevel ("Results");
 	}
-
-	public void ChangeTrainingMode () {
-		getReal3D.RpcManager.call("ChangeTrainingModeRPC");
-	}
+	
 
 	public void RestartSession(){
-		getReal3D.RpcManager.call("RestartSessionRPC");
+		CreateObjectManager();
+	}
+
+	public void ExitSession() {
+		if(getReal3D.Cluster.isMaster){
+			getReal3D.RpcManager.call("ExitSessionRPC");
+		}
 	}
 
 	[getReal3D.RPC]
-	private void ChangeTrainingModeRPC(){
-		Application.LoadLevel("");
+	private void ExitSessionRPC(){
+		Application.LoadLevel("Menu");
 	}
-
-	[getReal3D.RPC]
-	private void RestartSessionRPC(){
-		Application.LoadLevel("Main");
-	}
+	
 	public void VoiceCommand(string command) {
 		PlayAudio ("Activation");
 		switch(command) {
@@ -284,6 +319,15 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	}
 
+	public void ToggleCamDisplay() {
+		if(camDisplay.activeSelf) {
+			camDisplay.SetActive(false);
+		}
+		else {
+			camDisplay.SetActive(true);
+		}
+	}
+
 	private void ToggleMenus (GameObject menu) {
 		menu.GetComponent<ScrollableMenu>().SetActivationTime(Time.time);
 		if(menu.activeSelf) {
@@ -297,7 +341,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public Vector3 GetPatientPosition() {
-		return patient.transform.position;
+		return patientHips.transform.position;
 	}
 
 	public void RestartTimer() {
@@ -317,7 +361,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private void FinalizeLogFile() {
 
-		outputData["elapsedTime"].AsFloat = elapsedTime;
+		outputData["elapsedTime"].AsFloat = manager.GetTotalElapsedTime();
 		outputData ["numberOfObjects"].AsInt = manager.GetNumberOfObjects ();
 		outputData ["objects"] = manager.GetObjectsData ();
 		outputData["positions"] = patient.GetComponent<FlatAvatarController>().GetPositionsLog();

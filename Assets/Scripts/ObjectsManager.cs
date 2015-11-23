@@ -6,6 +6,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected int currentObject = 0;
 	protected int numberOfObjects;
+	protected int objectsCaught = 0;
 
 	protected JSONArray objects = new JSONArray();
 	protected float appearTime;
@@ -28,12 +29,12 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		currentObject++;
 		SessionManager.GetInstance ().StartTimer();
 		SessionManager.GetInstance().UpdateCurrentObject(currentObject);
+		if (currentObject == numberOfObjects+1) {
+			SessionManager.GetInstance ().StopTimer();
+			Invoke("EndSession", 1f);
+			return;
+		}
 		if (getReal3D.Cluster.isMaster) {
-			if (currentObject == numberOfObjects+1) {
-				SessionManager.GetInstance ().StopTimer();
-				Invoke("EndSession", 1f);
-				return;
-			}
 			Vector3 newPosition = PositionNewObject();
 			Quaternion newQuaternion = Quaternion.Euler (UnityEngine.Random.Range (0f, 360f), UnityEngine.Random.Range (0.0f, 360f), UnityEngine.Random.Range (0.0f, 360f));
 			MakeRPCCall(newPosition, newQuaternion);
@@ -45,6 +46,11 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected void EndSession() {
 		SessionManager.GetInstance().EndSession();
+		objectsCaught = 0;
+	}
+
+	public int GetNumberOfObjectsCaught () {
+		return numberOfObjects;
 	}
 
 	public int GetNumberOfObjects () {
@@ -61,6 +67,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 			objects.Add (obj);
 		}
 		SessionManager.GetInstance().RestartTimer();
+		objectsCaught++;
 		NextObject ();
 	}
 
@@ -79,6 +86,14 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	public JSONArray GetObjectsData() {
 		return objects;
+	}
+
+	public float GetTotalElapsedTime() {
+		float time = 0f;
+		foreach(JSONNode obj in objects.Childs) {
+			time += obj["time"].AsFloat;
+		}
+		return time;
 	}
 
 	void Update() {

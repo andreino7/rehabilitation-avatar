@@ -3,10 +3,10 @@ using System.Collections;
 
 public class RandomGenerator : ObjectsManager {
 
-	protected float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
+	protected float yOffset = 1.5f, verticalBounds = 0.7f, horizontalBounds = 0.8f;
 
 	public RandomGenerator() {
-		numberOfObjects = 3;
+		numberOfObjects = 5;
 	}
 
 	protected override Vector3 PositionNewObject() {

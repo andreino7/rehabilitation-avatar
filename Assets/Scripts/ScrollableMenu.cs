@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class ScrollableMenu : MonoBehaviour {
 
 	protected float lastButtonUpdateTime = 0f;
-	protected float antiBouncing = 0.05f;
+	protected float antiBouncing = 0.2f;
 	protected int index = 0;
 	protected int numberOfButtons = 3;
 	public Image[] images = new Image[3];
