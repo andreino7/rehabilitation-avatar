@@ -92,6 +92,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		if (tutorialMode) {
 			StopAllCoroutines();
 		}
+		GameObject[] objects = GameObject.FindGameObjectsWithTag("BasicObject");
+		foreach (GameObject o in objects) {
+			Destroy(o);
+		}
 		if(PlayerPrefs.HasKey("TrainingModeId")) {
 			switch(PlayerPrefs.GetInt("TrainingModeId")) {
 			case 1: StartCoroutine(Tutorial()); break;
