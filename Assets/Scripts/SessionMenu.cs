@@ -14,6 +14,8 @@ public class SessionMenu : ScrollableMenu {
 			base.Update();
 			if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button3)){
 				if (lastButtonUpdateTime + antiBouncing < Time.time) {
+					Debug.Log ("session menu " + index);
+
 					lastButtonUpdateTime = Time.time;
 					if (index > 0 && index <= 3) {
 						SessionManager.GetInstance().ToggleMenu();

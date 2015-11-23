@@ -19,7 +19,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private float elapsedTime = 0f;
 	private GameObject patient, patientHips;
 	private float lastButtonUpdateTime;
-	private float antiBouncing = 0.2f;
+	private float antiBouncing = 0.4f;
 
 	private GameObject redCircle;
 
@@ -86,12 +86,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public void CreateObjectManager() {
+		Debug.Log ("object manager " + PlayerPrefs.GetInt("TrainingModeId"));
 		if(manager != null) {
 			manager.CancelSession();
 		}
 		if (tutorialMode) {
 			StopAllCoroutines();
 		}
+		DisplayText (" ");
 		GameObject[] objects = GameObject.FindGameObjectsWithTag("BasicObject");
 		foreach (GameObject o in objects) {
 			Destroy(o);
@@ -209,6 +211,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		wand.GetComponentsInChildren<Renderer> () [3].material = litMaterial;
 		wand.GetComponentsInChildren<Renderer> () [6].material = litMaterial;
+
 		DisplayText ("Now use the arrows to select 'Training Mode' and then press 'X' again");
 		PlayAudio ("Voce00015");
 		while(!trainingPanel.activeSelf) {
@@ -216,7 +219,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		}
 		wand.GetComponentsInChildren<Renderer> () [3].material = normalMaterial;
 		wand.GetComponentsInChildren<Renderer> () [6].material = normalMaterial;
-
+		yield return new WaitForSeconds (1f);
 		DisplayText ("From here you can select which training mode to start.");
 		PlayAudio ("Voce00016");
 		yield return new WaitForSeconds (6f);
@@ -246,6 +249,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		ToggleCamDisplay();
 		PlayAudio ("Voce00021");
 		yield return new WaitForSeconds (3f);
+		DisplayText ("");
 		tutorialMode = false;
 	}
 

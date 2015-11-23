@@ -3,7 +3,7 @@ using System.Collections;
 
 public class UserInterface : MonoBehaviour {
 	private float lastButtonUpdateTime = 0f;
-	private float antiBouncing = 0.2f;
+	private float antiBouncing = 0.4f;
 	// Use this for initialization
 	void Start () {
 	
