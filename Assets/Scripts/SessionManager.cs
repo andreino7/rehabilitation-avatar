@@ -89,6 +89,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		if(manager != null) {
 			manager.CancelSession();
 		}
+		if (tutorialMode) {
+			StopAllCoroutines();
+		}
 		if(PlayerPrefs.HasKey("TrainingModeId")) {
 			switch(PlayerPrefs.GetInt("TrainingModeId")) {
 			case 1: StartCoroutine(Tutorial()); break;
@@ -183,7 +186,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		PlayAudio ("Victory");
 		DisplayText ("");
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
-		yield return new WaitForSeconds (3f);
+		yield return new WaitForSeconds (4f);
 		patient.SetActive (false);
 		PlayAudio ("Voce00010");
 		DisplayText ("Good job! Now you'll learn how to open the menu");
