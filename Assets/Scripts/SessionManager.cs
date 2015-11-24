@@ -20,6 +20,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private GameObject patient, patientHips;
 	private float lastButtonUpdateTime;
 	private float antiBouncing = 0.4f;
+	private float minimumZ = 4.6f;
 
 	private GameObject redCircle;
 
@@ -57,7 +58,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public IEnumerator StartCountdown() {
 		ShowRedCircle();
-		while (patientHips.transform.position.z < 4.8f) {
+		while (patientHips.transform.position.z < minimumZ) {
 			yield return null;
 		}
 		HideRedCircle();
@@ -94,6 +95,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			StopAllCoroutines();
 		}
 		DisplayText (" ");
+		patient.SetActive(true);
 		GameObject[] objects = GameObject.FindGameObjectsWithTag("BasicObject");
 		foreach (GameObject o in objects) {
 			Destroy(o);
@@ -160,7 +162,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		ShowRedCircle();
 		PlayAudio ("Voce00005");
 		yield return new WaitForSeconds (6f);
-		while (patientHips.transform.position.z < 4.8f) {
+		while (patientHips.transform.position.z < minimumZ) {
 			yield return null;
 		}
 
@@ -259,28 +261,24 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 //		DisplayText ("!! Training Complete !!");
 //		DisplayText("Number of objects caught: " + manager.GetNumberOfObjectsCaught () );
 //		DisplayText("Number of objects caught: " + manager.GetNumberOfObjectsCaught () );
-		StartCoroutine(EndSessionMessages());
+		StartCoroutine(EndSessionCoroutine());
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		if (getReal3D.Cluster.isMaster) {
 			FinalizeLogFile ();
 		}
-		if(getReal3D.Cluster.isMaster) {
-			getReal3D.RpcManager.call("EndSessionRPC");
-			//Invoke ("ChangeScene",4f);
-		}
 	}
 
-	public IEnumerator EndSessionMessages() {
+	public IEnumerator EndSessionCoroutine() {
 		DisplayText ("!! Training Complete !!");
+		PlayAudio ("Victory");
+		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
 		yield return new WaitForSeconds (2f);
-		DisplayText("Mode: " + PlayerPrefs.GetString("TrainingMode") + "\nObjects caught: " + manager.GetNumberOfObjectsCaught () + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(manager.GetTotalElapsedTime()) + "s");
+		getReal3D.RpcManager.call("DisplayTrainingSummary", manager.GetTotalElapsedTime());
 	}
 
 	[getReal3D.RPC]
-	private void EndSessionRPC() {
-		PlayAudio ("Victory");
-		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
-
+	private void DisplayTrainingSummary(float time) {
+		DisplayText("Mode: " + PlayerPrefs.GetString("TrainingMode") + "\nObjects caught: " + manager.GetNumberOfObjectsCaught () + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
 	}
 
 	public void PlayAudio(string name) {
@@ -316,8 +314,22 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public void VoiceCommand(string command) {
 		PlayAudio ("Activation");
 		switch(command) {
-			case "RESTART": Invoke("RestartSession", 1f); break;
-			case "MENU": ToggleMenu(); break;
+			case "RESTART": case "START": Invoke("RestartSession", 1f); break;
+			case "MENU": case "OPEN MENU": ToggleMenu(); break;
+			case "STOP": AbortSession(); break;
+			case "EXIT": ExitSession(); break;
+			case "FIRST PERSON": FirstPersonMode(); break;
+			case "THIRD PERSON": ThirdPersonMode(); break;
+			case "MODE": case "TRAINING MODE": ShowTrainingModes(); break;
+			case "CLOSE": case "CLOSE MENU": CloseMenus(); break;
+		}
+	}
+
+	public void CloseMenus() {
+		if(menuPanel.activeSelf || trainingPanel.activeSelf) {
+			PlayAudio ("Cancel");
+			menuPanel.SetActive(false);
+			trainingPanel.SetActive(false);
 		}
 	}
 
@@ -328,6 +340,33 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public void ToggleTrainingMode() {
 		ToggleMenus(trainingPanel);
 
+	}
+
+	public void AbortSession() {
+		StopTimer();
+		if(getReal3D.Cluster.isMaster) {
+			getReal3D.RpcManager.call("DisplayTrainingSummary", manager.GetTotalElapsedTime());
+		}
+	}
+
+	public void ShowTrainingModes() {
+		if(menuPanel.activeSelf) {
+			menuPanel.SetActive(false);
+		}
+		trainingPanel.SetActive(true);
+	}
+
+	public void FirstPersonMode() {
+		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
+		script.isThirdPerson = false;
+		patientHips.transform.localScale = new Vector3(0f, 0f, 0f);
+
+	}
+
+	public void ThirdPersonMode() {
+		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
+		script.isThirdPerson = true;
+		patientHips.transform.localScale = new Vector3(1.3f, 1f, 1f);
 	}
 
 	public void ToggleCamDisplay() {

@@ -4,12 +4,13 @@ using System.Collections;
 public class ProgressiveDistanceGenerator : ObjectsManager {
 	public enum Direction{LEFT, RIGHT, UPLEFT, UPRIGHT};
 	protected float yOffset = 1f, verticalBounds = 1f, horizontalBounds = 1f;
-	protected float increment = 0.2f;
+	protected float increment;
 	protected Direction direction = Direction.LEFT;
 	private float currentX, currentY;
 	
 	public ProgressiveDistanceGenerator() {
-		numberOfObjects = 3;
+		numberOfObjects = 10;
+		increment = 0.2f * 3f / numberOfObjects;
 		this.direction = Direction.LEFT;
 		if (direction == Direction.LEFT || direction == Direction.UPLEFT) {
 			currentX = -xAvatarSize;

@@ -13,7 +13,7 @@ public class getRealCameraUpdater
     : MonoBehaviour
 {
 
-	public float yOffset = 0f;
+	public float yOffset = 0f, zOffset = 0f;
 	public float angleOffset = 0f;
 
     private Transform m_transform;
@@ -128,7 +128,7 @@ public class getRealCameraUpdater
 
     void Update()
     {
-        if(!updateOnPreCull)
+        //if(!updateOnPreCull)
             UpdateCamera();
     }
 
@@ -142,7 +142,8 @@ public class getRealCameraUpdater
     {
         if(m_pluginInitialized) {
             if(applyHeadPosition) {
-				m_transform.localPosition = getReal3D.Input.GetCameraSensor((uint) cameraIndex).position + new Vector3(0f, yOffset, 0f);
+				m_transform.localPosition = getReal3D.Input.GetCameraSensor((uint) cameraIndex).position + new Vector3(0f, yOffset, zOffset);
+				//Debug.Log(m_transform.localPosition);
             }
             if(applyHeadRotation) {
                 m_transform.localRotation = getReal3D.Input.GetCameraSensor((uint) cameraIndex).rotation;
