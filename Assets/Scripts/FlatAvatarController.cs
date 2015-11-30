@@ -11,6 +11,7 @@ public class FlatAvatarController : OmicronEventClient {
 
 	public bool isThirdPerson = true;
 	public bool isPatient = false;
+	public bool isDistortedReality;
 
 	public float yOffset = 0.6f, zOffset = 2.5f;
 	private float lastUpdate, timeout = 0.1f;
@@ -91,28 +92,49 @@ public class FlatAvatarController : OmicronEventClient {
 
 		verticalMultiplier = verticalDistance / GetJointPosition(e, 1).y;*/
 
-		UpdateHipsPosition (e);
+		if (!isDistortedReality) {
+			UpdateHipsPosition (e);
+			UpdateJointPosition (leftElbow, e, 7);
+			UpdateJointPosition (rightElbow, e, 17);
+				
+			UpdateJointPosition (leftHand, e, 9);
+			UpdateJointPosition (rightHand, e, 19);
 
-		UpdateJointPosition (leftElbow, e, 7);
-		UpdateJointPosition (rightElbow, e, 17);
+			UpdateJointPosition (leftShoulder, e, 6); //, new Vector3(-0.1f, -0.1f, 0f));
+			UpdateJointPosition (rightShoulder, e, 16); //, new Vector3(0.1f, -0.1f, 0f));
+			leftHandState = FetchHandState(e.orw);
+			rightHandState = FetchHandState(e.orx);
+			
+			UpdateJointPosition (leftHip, e, 11);
+			UpdateJointPosition (rightHip, e, 21);
+			
+			UpdateJointPosition (leftKnee, e, 12);
+			UpdateJointPosition (rightKnee, e, 22);
+			
+			UpdateJointPosition (leftFoot, e, 13);
+			UpdateJointPosition (rightFoot, e, 23);
+		} else {
+			UpdateHipsPositionDistorted(e);
+			UpdateJointPositionDistorted (leftElbow, e, 17);
+			UpdateJointPositionDistorted (rightElbow, e, 7);
+			
+			UpdateJointPositionDistorted (leftHand, e, 19);
+			UpdateJointPositionDistorted (rightHand, e, 9);
+			
+			UpdateJointPositionDistorted (leftShoulder, e, 16); //, new Vector3(-0.1f, -0.1f, 0f));
+			UpdateJointPositionDistorted (rightShoulder, e, 6);
 
-		UpdateJointPosition (leftHand, e, 9);
-		UpdateJointPosition (rightHand, e, 19);
+			UpdateJointPositionDistorted (leftHip, e, 21);
+			UpdateJointPositionDistorted (rightHip, e, 11);
+			
+			UpdateJointPositionDistorted (leftKnee, e, 22);
+			UpdateJointPositionDistorted (rightKnee, e, 12);
+			
+			UpdateJointPositionDistorted (leftFoot, e, 23);
+			UpdateJointPositionDistorted (rightFoot, e, 13);
+		}
 
-		UpdateJointPosition (leftShoulder, e, 6); //, new Vector3(-0.1f, -0.1f, 0f));
-		UpdateJointPosition (rightShoulder, e, 16); //, new Vector3(0.1f, -0.1f, 0f));
 
-		leftHandState = FetchHandState(e.orw);
-		rightHandState = FetchHandState(e.orx);
-
-		UpdateJointPosition (leftHip, e, 11);
-		UpdateJointPosition (rightHip, e, 21);
-
-		UpdateJointPosition (leftKnee, e, 12);
-		UpdateJointPosition (rightKnee, e, 22);
-
-		UpdateJointPosition (leftFoot, e, 13);
-		UpdateJointPosition (rightFoot, e, 23);
 
 
 		//UpdateJointPosition (leftFinger, e, 10);
@@ -129,10 +151,25 @@ public class FlatAvatarController : OmicronEventClient {
 		}
 	}
 
+	private void UpdateJointPositionDistorted(GameObject joint, EventData e, int jointId, Vector3 optionalOffset = default(Vector3)) {
+		Vector3 newPosition = GetJointPosition(e, jointId);
+		newPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z);
+		if(!newPosition.Equals(Vector3.zero)) {
+			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f)) + optionalOffset;
+		}
+	}
+
 	private void UpdateHipsPosition(EventData e) {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
 			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f));
+		}
+	}
+
+	private void UpdateHipsPositionDistorted(EventData e) {
+		Vector3 newPosition = GetJointPosition(e, 0);
+		if(!newPosition.Equals(Vector3.zero)) {
+			hips.transform.localPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f));
 		}
 	}
 

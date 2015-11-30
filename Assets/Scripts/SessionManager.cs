@@ -319,6 +319,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "STOP": AbortSession(); break;
 			case "EXIT": ExitSession(); break;
 			case "FIRST PERSON": FirstPersonMode(); break;
+			case "DISTORTED REALITY": DistortedRealityMode(); break;
 			case "THIRD PERSON": ThirdPersonMode(); break;
 			case "MODE": case "TRAINING MODE": ShowTrainingModes(); break;
 			case "CLOSE": case "CLOSE MENU": CloseMenus(); break;
@@ -362,6 +363,12 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patientHips.transform.localScale = new Vector3(0f, 0f, 0f);
 
 	}
+	public void DistortedRealityMode() {
+		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
+		script.isDistortedReality = true;
+		patientHips.transform.localScale = new Vector3(0f, 0f, 0f);
+	}
+
 
 	public void ThirdPersonMode() {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
