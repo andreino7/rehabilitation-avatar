@@ -10,14 +10,17 @@ public class CustomGenerator : ObjectsManager {
 
 	public CustomGenerator() {
 		numberOfObjects = 15;
-		TextAsset json = (TextAsset) Resources.Load ("CustomObjects");
+		TextAsset json = (TextAsset) Resources.Load ("CustomGenerator");
+		Debug.Log(json.text);
 		customObjects = (JSON.Parse (json.text)).AsArray;
 		numberOfObjects = customObjects.Count;
+		Debug.Log(numberOfObjects);
 	}
 
 	protected override Vector3 PositionNewObject() {
-		JSONNode currentObj = customObjects[currentObject];
+		JSONNode currentObj = customObjects[currentObject-1];
 		Vector3 newPosition = new Vector3 (currentObj["x"].AsFloat, currentObj["y"].AsFloat, SessionManager.GetInstance ().GetPatientPosition().z + currentObj["z"].AsFloat);
+		Debug.Log("Nuovo oggetto: " + newPosition);
 		return newPosition;
 	}
 

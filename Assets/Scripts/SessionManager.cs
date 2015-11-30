@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityStandardAssets.ImageEffects;
 using System.Collections;
 using System;
 using System.IO;
@@ -7,12 +8,15 @@ using SimpleJSON;
 
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
-	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay;
+	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel;
 	public Text textHint;
 	public Material litMaterial, normalMaterial;
-	public Text labelLeft, labelRight; 
+	public Text labelLeft, labelRight, labelMode; 
 	public GameObject sessionCompleteAnimation;
 	private bool tutorialMode = false;
+
+	public Grayscale cameraEffect;
+
 	private static SessionManager instance;
 	private float xAvatarSize = 0.3f;
 
@@ -90,6 +94,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		Debug.Log ("object manager " + PlayerPrefs.GetInt("TrainingModeId"));
 		if(manager != null) {
 			manager.CancelSession();
+			StopTimer();
+			labelLeft.text = "";
+			labelRight.text = "";
 		}
 		if (tutorialMode) {
 			StopAllCoroutines();
@@ -105,11 +112,26 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case 1: StartCoroutine(Tutorial()); break;
 			case 2: manager = gameObject.AddComponent<RandomGenerator> (); break;
 			case 3: manager = gameObject.AddComponent<ProgressiveDistanceGenerator> (); break;
+			case 4: manager = gameObject.AddComponent<CustomGenerator> (); break;
 			}
 			if(manager != null && PlayerPrefs.GetInt("TrainingModeId")!=1) {
 				StartCoroutine(StartCountdown());
 			}
 		}
+	}
+
+	public void StartNewTraining(int trainingId) {
+		PlayerPrefs.SetInt("TrainingModeId", trainingId);
+		string modeName = "";
+		switch(trainingId) {
+			case 1: modeName = "Tutorial"; break;
+			case 2: modeName = "Random Objects"; break;
+			case 3: modeName = "Progressive distance"; break;
+			case 4: modeName = "Custom training"; break;
+		}
+		PlayerPrefs.SetString("TrainingMode", modeName);
+		labelMode.text = modeName;
+		CreateObjectManager();
 	}
 
 	public void CreateFirstObject() {
@@ -278,7 +300,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	[getReal3D.RPC]
 	private void DisplayTrainingSummary(float time) {
-		DisplayText("Mode: " + PlayerPrefs.GetString("TrainingMode") + "\nObjects caught: " + manager.GetNumberOfObjectsCaught () + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
+		DisplayText(/*"Mode: " + PlayerPrefs.GetString("TrainingMode") + */"\nObjects caught: " + manager.GetNumberOfObjectsCaught () + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
 	}
 
 	public void PlayAudio(string name) {
@@ -323,6 +345,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "THIRD PERSON": ThirdPersonMode(); break;
 			case "MODE": case "TRAINING MODE": ShowTrainingModes(); break;
 			case "CLOSE": case "CLOSE MENU": CloseMenus(); break;
+			case "RANDOM OBJECTS": StartNewTraining(2); break;
+			case "PROGRESSIVE DISTANCE": StartNewTraining(3); break;
+			case "TUTORIAL": StartNewTraining(1); break;
+			case "CUSTOM TRAINING": StartNewTraining(4); break;
+			case "HELP": ToggleHelpPanel(); break;
 		}
 	}
 
@@ -365,8 +392,15 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 	public void DistortedRealityMode() {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
-		script.isDistortedReality = true;
-		patientHips.transform.localScale = new Vector3(0f, 0f, 0f);
+		if(script.isDistortedReality) {
+			script.isDistortedReality = false;
+			cameraEffect.enabled = false;
+		}
+		else {
+			script.isDistortedReality = true;
+			cameraEffect.enabled = true;
+		}
+		PlayAudio("Start");
 	}
 
 
@@ -445,4 +479,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public void DisplayText(string text) {
 		textHint.text = text;
 	}
+
+	public void ToggleHelpPanel() {
+		ToggleMenus(helpPanel);
+	}
+
 }

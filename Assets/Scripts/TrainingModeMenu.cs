@@ -5,7 +5,7 @@ public class TrainingModeMenu : ScrollableMenu {
 
 	// Use this for initialization
 	void Start () {
-		numberOfButtons = 3;
+		numberOfButtons = 4;
 	}
 	
 	// Update is called once per frame
@@ -16,17 +16,9 @@ public class TrainingModeMenu : ScrollableMenu {
 				if (lastButtonUpdateTime + antiBouncing < Time.time) {
 					lastButtonUpdateTime = Time.time;
 					Debug.Log(index);
-					if (index > 0 && index <= 3) {
+					if (index > 0 && index <= 4) {
 						SessionManager.GetInstance().ToggleTrainingMode();
-						PlayerPrefs.SetInt("TrainingModeId", index);
-						string modeName = "";
-						switch(index) {
-							case 1: modeName = "Tutorial"; break;
-							case 2: modeName = "Random Objects"; break;
-							case 3: modeName = "Progressive distance"; break;
-						}
-						PlayerPrefs.SetString("TrainingMode", modeName);
-						SessionManager.GetInstance().CreateObjectManager();
+						SessionManager.GetInstance().StartNewTraining(index);
 					} 
 				}
 			} else if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button2)){

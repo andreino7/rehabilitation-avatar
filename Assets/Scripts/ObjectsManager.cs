@@ -50,7 +50,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public int GetNumberOfObjectsCaught () {
-		return numberOfObjects;
+		return objectsCaught;
 	}
 
 	public int GetNumberOfObjects () {
