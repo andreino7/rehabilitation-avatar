@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Net.Mail;
 using UnityStandardAssets.ImageEffects;
 using System.Collections;
 using System;
@@ -291,7 +292,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		StartCoroutine(EndSessionCoroutine());
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		if (getReal3D.Cluster.isMaster) {
-			FinalizeLogFile ();
+			//FinalizeLogFile ();
+			SendMail();
 		}
 	}
 
@@ -369,10 +371,12 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public void ToggleMenu() {
+		closeHelpPanel();
 		ToggleMenus(menuPanel);
 	}
 
 	public void ToggleTrainingMode() {
+		closeHelpPanel();
 		ToggleMenus(trainingPanel);
 
 	}
@@ -388,6 +392,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		if(menuPanel.activeSelf) {
 			menuPanel.SetActive(false);
 		}
+		closeHelpPanel();
 		trainingPanel.SetActive(true);
 	}
 
@@ -457,6 +462,20 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
 	}
 
+	private void SendMail() {
+		Debug.Log ("sending email");
+		MailMessage mail = new MailMessage("rehabilitation-avatar@mail.com", "fpello2@uic.edu");
+		SmtpClient client = new SmtpClient();
+		client.Port = 587;
+		client.DeliveryMethod = SmtpDeliveryMethod.Network;
+		client.UseDefaultCredentials = false;
+		client.Host = "smtp.mail.com";
+		client.Credentials = (System.Net.ICredentialsByHost) new System.Net.NetworkCredential("rehabilitation-avatar@mail.com", "password" );
+		mail.Subject = "scemo";
+		mail.Body = "perche' hai i capelli giu'?";
+		client.Send(mail);
+	}
+
 	private void FinalizeLogFile() {
 
 		outputData["elapsedTime"].AsFloat = manager.GetTotalElapsedTime();
@@ -476,7 +495,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			if (lastButtonUpdateTime + antiBouncing < Time.time) {
 				lastButtonUpdateTime = Time.time;
 				if (!menuPanel.activeSelf && !trainingPanel.activeSelf) {
-					ToggleMenus(menuPanel);
+					ToggleMenu();
 				}
 			}
 		}
@@ -492,10 +511,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		ToggleMenus(helpPanel);
 	}
 
+	public void closeHelpPanel() {
+		Debug.Log("close help panel");
+		helpPanel.SetActive(false);
+	}
+
 	private void closeAllMenu() {
 		menuPanel.SetActive(false);
 		trainingPanel.SetActive(false);
-		helpPanel.SetActive(false);
 	}
 
 }

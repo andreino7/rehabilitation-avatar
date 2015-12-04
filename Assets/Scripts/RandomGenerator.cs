@@ -6,7 +6,7 @@ public class RandomGenerator : ObjectsManager {
 	protected float yOffset = 1.5f, verticalBounds = 0.7f, horizontalBounds = 0.8f;
 
 	public RandomGenerator() {
-		numberOfObjects = 15;
+		numberOfObjects = 3;
 	}
 
 	protected override Vector3 PositionNewObject() {
