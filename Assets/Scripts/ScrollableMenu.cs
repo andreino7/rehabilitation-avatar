@@ -34,7 +34,7 @@ public class ScrollableMenu : MonoBehaviour {
 		}
 	}
 
-	private void UpdateGraphics() {
+	protected void UpdateGraphics() {
 		for(int i=0; i<images.Length; i++) {
 			if(i == index-1) {
 				images[i].sprite = sprites[1];

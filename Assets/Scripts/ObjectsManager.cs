@@ -46,10 +46,11 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected void EndSession() {
 		SessionManager.GetInstance().EndSession();
-		objectsCaught = 0;
+	//	objectsCaught = 0;
 	}
 
 	public int GetNumberOfObjectsCaught () {
+		Debug.Log ("Sono get number of objects caught e ritorno: " + objectsCaught);
 		return objectsCaught;
 	}
 
@@ -68,6 +69,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		}
 		SessionManager.GetInstance().RestartTimer();
 		objectsCaught++;
+		Debug.Log ("object caught: " + objectsCaught);
 		NextObject ();
 	}
 

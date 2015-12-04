@@ -12,11 +12,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel, confirmPanel, mapPanel;
 	public Text textHint;
 	public Material litMaterial, normalMaterial;
-	public Text labelLeft, labelRight, labelMode; 
+	public Text labelLeft, labelRight, labelMode, labelHelp; 
 	public GameObject sessionCompleteAnimation;
-	private bool tutorialMode = false;
-
-	private Grayscale cameraEffect;
+	private bool tutorialMode = false; 
 
 	private static SessionManager instance;
 	private float xAvatarSize = 0.3f;
@@ -41,7 +39,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private ConfirmDelegate currentDelegate;
 
 	private void ConfirmMethod(string message, ConfirmDelegate del) {
-		confirmPanel.SetActive (true);
+		ToggleMenus(confirmPanel);
 		currentDelegate = del;
 	}
 
@@ -51,7 +49,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public void CancelDelegate() {
-		ToggleMenus (confirmPanel);
+		ToggleMenus(confirmPanel);
 	}
 
 	private SessionManager () {}
@@ -69,8 +67,6 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		patientHips = GameObject.FindGameObjectWithTag("Hips");
 		audio = GetComponent<AudioSource>();
-		cameraEffect = Camera.main.gameObject.GetComponent<Grayscale>();
-		cameraEffect.enabled = false;
 
 		//CreateObjectManager();
 		if(PlayerPrefs.HasKey("TrainingModeId")) {
@@ -120,6 +116,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			StopTimer();
 			labelLeft.text = "";
 			labelRight.text = "";
+			StopAllCoroutines();
 		}
 		if (tutorialMode) {
 			StopAllCoroutines();
@@ -152,8 +149,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case 3: modeName = "Progressive distance"; break;
 			case 4: modeName = "Custom training"; break;
 		}
+		CheckIfLabelNeeded();
 		PlayerPrefs.SetString("TrainingMode", modeName);
-		//labelMode.text = modeName;
+		labelMode.text = modeName;
 		CreateObjectManager();
 	}
 
@@ -182,6 +180,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public IEnumerator Tutorial() {
 		tutorialMode = true;
+		CheckIfLabelNeeded();
 		ToggleCamDisplay();
 		DisplayText ("Welcome to the tutorial");
 		PlayAudio ("Voce00002");
@@ -310,8 +309,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		StartCoroutine(EndSessionCoroutine());
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		if (getReal3D.Cluster.isMaster) {
-			//FinalizeLogFile ();
-			SendMail();
+			string filePath = FinalizeLogFile ();
+			//SendMail(filePath);
 		}
 	}
 
@@ -321,6 +320,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
 		yield return new WaitForSeconds (2f);
 		if (getReal3D.Cluster.isMaster) {
+			Debug.Log ("sono la courutine e chiamo manager.GetNumberOfObjectsCaught(): " +  manager.GetNumberOfObjectsCaught());
 			getReal3D.RpcManager.call("DisplayTrainingSummary", manager.GetNumberOfObjectsCaught(), manager.GetTotalElapsedTime());
 		}
 	}
@@ -433,11 +433,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
 		if(script.isDistortedReality) {
 			script.isDistortedReality = false;
-			//cameraEffect.enabled = false;
+			ToggleCameraEffect();
 		}
 		else {
 			script.isDistortedReality = true;
-			//cameraEffect.enabled = true;
+			ToggleCameraEffect();
 		}
 		PlayAudio("Start");
 	}
@@ -468,6 +468,15 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			PlayAudio ("Activation");
 			menu.SetActive(true);
 		}
+		CheckIfLabelNeeded();
+	}
+
+	private void CheckIfLabelNeeded() {
+		if (menuPanel.activeSelf || trainingPanel.activeSelf || confirmPanel.activeSelf || helpPanel.activeSelf || tutorialMode) {
+			labelHelp.enabled = false;
+		} else {
+			labelHelp.enabled = true;
+		}
 	}
 
 	public Vector3 GetPatientPosition() {
@@ -489,34 +498,41 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
 	}
 
-	private void SendMail() {
+	private void SendMail(string filePath) {
 		Debug.Log ("sending email");
-		MailMessage mail = new MailMessage("rehabilitation-avatar@mail.com", "fpello2@uic.edu");
+		MailMessage mail = new MailMessage("rehabilitation-avatar@mail.com", "mastercava@hotmail.it");
 		SmtpClient client = new SmtpClient();
+		Attachment attachment = new Attachment(filePath);
+		mail.Attachments.Add(attachment);
 		client.Port = 587;
 		client.DeliveryMethod = SmtpDeliveryMethod.Network;
 		client.UseDefaultCredentials = false;
 		client.Host = "smtp.mail.com";
 		client.Credentials = (System.Net.ICredentialsByHost) new System.Net.NetworkCredential("rehabilitation-avatar@mail.com", "password" );
-		mail.Subject = "scemo";
-		mail.Body = "perche' hai i capelli giu'?";
+		mail.Subject = "New training log for patient " + PlayerPrefs.GetString("PatientId");
+		mail.Body = "The training log file is attached to this email.";
 		client.Send(mail);
 	}
 
-	private void FinalizeLogFile() {
+	private string FinalizeLogFile() {
 
 		outputData["elapsedTime"].AsFloat = manager.GetTotalElapsedTime();
 		outputData ["numberOfObjects"].AsInt = manager.GetNumberOfObjects ();
 		outputData ["objects"] = manager.GetObjectsData ();
 		outputData["positions"] = patient.GetComponent<FlatAvatarController>().GetPositionsLog();
-
-		using (StreamWriter sw = new StreamWriter("C:\\Users\\evldemo\\Desktop\\Rehabilitation Log\\log.txt")) {
+		string filePath = "C:\\Users\\evldemo\\Desktop\\Rehabilitation Log\\" + (PlayerPrefs.GetString("PatientId").Replace(" ", "")) + "_" + (PlayerPrefs.GetString("TrainingMode").Replace(" ", "")) + "_" + GetTimestamp(DateTime.Now) + ".txt";
+		using (StreamWriter sw = new StreamWriter(filePath)) {
 			sw.Write(outputData.ToString());
 			sw.Close();
 		}
 		Debug.Log(outputData.ToString());
+		return filePath;
 	}
 
+	private String GetTimestamp(DateTime value) {
+		return value.ToString("yyyyMMddHHmmssffff");
+	}
+	
 	void Update() {
 		if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button3)){
 			if (lastButtonUpdateTime + antiBouncing < Time.time) {
@@ -546,6 +562,16 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private void closeAllMenu() {
 		menuPanel.SetActive(false);
 		trainingPanel.SetActive(false);
+	}
+
+	private void ToggleCameraEffect() {
+		Grayscale cameraEffect = Camera.main.gameObject.GetComponent<Grayscale>();
+		if(cameraEffect.enabled) {
+			cameraEffect.enabled = false;
+		}
+		else {
+			cameraEffect.enabled = true;
+		}
 	}
 
 }

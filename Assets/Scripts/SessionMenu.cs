@@ -27,7 +27,7 @@ public class SessionMenu : ScrollableMenu {
 							SessionManager.GetInstance ().ToggleTrainingMode();
 							break;
 						case 3:
-							SessionManager.GetInstance ().ExitSession();
+							SessionManager.GetInstance ().ConfirmExit();
 							break;
 						default:
 							break;
