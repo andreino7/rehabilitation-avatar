@@ -105,6 +105,17 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		}
 	}
 
+	void OnPostRender() {
+		GL.PushMatrix();
+		GL.LoadOrtho();
+		GL.Begin(GL.LINES);
+		GL.Color(Color.red);
+		GL.Vertex(Vector3.zero);
+		GL.Vertex(new Vector3(1f, 2f, 1f));
+		GL.End();
+		GL.PopMatrix();
+	}
+
 	public void CancelSession() {
 		Destroy (virtualObject);
 		Destroy(this);
