@@ -9,14 +9,14 @@ using SimpleJSON;
 
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
-	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel;
+	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel, confirmPanel, mapPanel;
 	public Text textHint;
 	public Material litMaterial, normalMaterial;
 	public Text labelLeft, labelRight, labelMode; 
 	public GameObject sessionCompleteAnimation;
 	private bool tutorialMode = false;
 
-	public Grayscale cameraEffect;
+	private Grayscale cameraEffect;
 
 	private static SessionManager instance;
 	private float xAvatarSize = 0.3f;
@@ -37,6 +37,22 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected JSONNode outputData;
 
+	delegate void ConfirmDelegate();
+	private ConfirmDelegate currentDelegate;
+
+	private void ConfirmMethod(string message, ConfirmDelegate del) {
+		confirmPanel.SetActive (true);
+		currentDelegate = del;
+	}
+
+	public void ExecuteDelegate() {
+		CloseMenus ();
+		currentDelegate ();
+	}
+
+	public void CancelDelegate() {
+		ToggleMenus (confirmPanel);
+	}
 
 	private SessionManager () {}
 
@@ -53,6 +69,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		patientHips = GameObject.FindGameObjectWithTag("Hips");
 		audio = GetComponent<AudioSource>();
+		cameraEffect = Camera.main.gameObject.GetComponent<Grayscale>();
+		cameraEffect.enabled = false;
 
 		//CreateObjectManager();
 		if(PlayerPrefs.HasKey("TrainingModeId")) {
@@ -309,7 +327,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	[getReal3D.RPC]
 	private void DisplayTrainingSummary(int numberOfObjectsCaught, float time) {
-		DisplayText(/*"Mode: " + PlayerPrefs.GetString("TrainingMode") + */"\nObjects caught: " + numberOfObjectsCaught + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
+		DisplayText(/*"Mode: " + PlayerPrefs.GetString("TrainingMode") + */"Objects caught: " + numberOfObjectsCaught + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
 	}
 
 	public void PlayAudio(string name) {
@@ -331,6 +349,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		CreateObjectManager();
 	}
 
+	public void ConfirmExit() {
+		ConfirmMethod ("", new ConfirmDelegate(ExitSession));
+	}
+
 	public void ExitSession() {
 		if(getReal3D.Cluster.isMaster){
 			getReal3D.RpcManager.call("ExitSessionRPC");
@@ -349,6 +371,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "MENU": case "OPEN MENU": ToggleMenu(); break;
 			case "STOP": AbortSession(); break;
 			case "EXIT": ExitSession(); break;
+			case "MAP": ToggleMap(); break;
 			case "FIRST PERSON": FirstPersonMode(); break;
 			case "DISTORTED REALITY": DistortedRealityMode(); break;
 			case "THIRD PERSON": ThirdPersonMode(); break;
@@ -360,6 +383,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "CUSTOM TRAINING": StartNewTraining(4); break;
 			case "HELP": ToggleHelpPanel(); break;
 		}
+	}
+
+	public void ToggleMap() {
+		ToggleMenus (mapPanel);
 	}
 
 	public void CloseMenus() {
