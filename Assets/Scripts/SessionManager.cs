@@ -52,7 +52,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		patientHips = GameObject.FindGameObjectWithTag("Hips");
 		audio = GetComponent<AudioSource>();
-		CreateObjectManager();
+
+		//CreateObjectManager();
+		if(PlayerPrefs.HasKey("TrainingModeId")) {
+			StartNewTraining(PlayerPrefs.GetInt("TrainingModeId"));
+		}
 
 	}
 
@@ -130,7 +134,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case 4: modeName = "Custom training"; break;
 		}
 		PlayerPrefs.SetString("TrainingMode", modeName);
-		labelMode.text = modeName;
+		//labelMode.text = modeName;
 		CreateObjectManager();
 	}
 
@@ -236,6 +240,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		wand.GetComponentsInChildren<Renderer> () [3].material = litMaterial;
 		wand.GetComponentsInChildren<Renderer> () [6].material = litMaterial;
 
+		yield return new WaitForSeconds (2f);
 		DisplayText ("Now use the arrows to select 'Training Mode' and then press 'X' again");
 		PlayAudio ("Voce00015");
 		while(!trainingPanel.activeSelf) {
@@ -295,12 +300,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		PlayAudio ("Victory");
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
 		yield return new WaitForSeconds (2f);
-		getReal3D.RpcManager.call("DisplayTrainingSummary", manager.GetTotalElapsedTime());
+		if (getReal3D.Cluster.isMaster) {
+			getReal3D.RpcManager.call("DisplayTrainingSummary", manager.GetNumberOfObjectsCaught(), manager.GetTotalElapsedTime());
+		}
 	}
 
 	[getReal3D.RPC]
-	private void DisplayTrainingSummary(float time) {
-		DisplayText(/*"Mode: " + PlayerPrefs.GetString("TrainingMode") + */"\nObjects caught: " + manager.GetNumberOfObjectsCaught () + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
+	private void DisplayTrainingSummary(int numberOfObjectsCaught, float time) {
+		DisplayText(/*"Mode: " + PlayerPrefs.GetString("TrainingMode") + */"\nObjects caught: " + numberOfObjectsCaught + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
 	}
 
 	public void PlayAudio(string name) {
@@ -394,11 +401,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
 		if(script.isDistortedReality) {
 			script.isDistortedReality = false;
-			cameraEffect.enabled = false;
+			//cameraEffect.enabled = false;
 		}
 		else {
 			script.isDistortedReality = true;
-			cameraEffect.enabled = true;
+			//cameraEffect.enabled = true;
 		}
 		PlayAudio("Start");
 	}
@@ -481,7 +488,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public void ToggleHelpPanel() {
+		closeAllMenu();
 		ToggleMenus(helpPanel);
+	}
+
+	private void closeAllMenu() {
+		menuPanel.SetActive(false);
+		trainingPanel.SetActive(false);
+		helpPanel.SetActive(false);
 	}
 
 }
