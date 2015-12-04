@@ -8,7 +8,7 @@ using SimpleJSON;
 
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
-	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel, confirmPanel;
+	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel, confirmPanel, mapPanel;
 	public Text textHint;
 	public Material litMaterial, normalMaterial;
 	public Text labelLeft, labelRight, labelMode; 
@@ -325,7 +325,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	[getReal3D.RPC]
 	private void DisplayTrainingSummary(int numberOfObjectsCaught, float time) {
-		DisplayText(/*"Mode: " + PlayerPrefs.GetString("TrainingMode") + */"\nObjects caught: " + numberOfObjectsCaught + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
+		DisplayText(/*"Mode: " + PlayerPrefs.GetString("TrainingMode") + */"Objects caught: " + numberOfObjectsCaught + " out of " + manager.GetNumberOfObjects ()+ "\nElapsed time: " + Mathf.Round(time) + "s");
 	}
 
 	public void PlayAudio(string name) {
@@ -369,6 +369,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "MENU": case "OPEN MENU": ToggleMenu(); break;
 			case "STOP": AbortSession(); break;
 			case "EXIT": ExitSession(); break;
+			case "MAP": ToggleMap(); break;
 			case "FIRST PERSON": FirstPersonMode(); break;
 			case "DISTORTED REALITY": DistortedRealityMode(); break;
 			case "THIRD PERSON": ThirdPersonMode(); break;
@@ -380,6 +381,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "CUSTOM TRAINING": StartNewTraining(4); break;
 			case "HELP": ToggleHelpPanel(); break;
 		}
+	}
+
+	public void ToggleMap() {
+		ToggleMenus (mapPanel);
 	}
 
 	public void CloseMenus() {
