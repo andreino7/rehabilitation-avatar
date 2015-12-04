@@ -15,7 +15,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public GameObject sessionCompleteAnimation;
 	private bool tutorialMode = false;
 
-	public Grayscale cameraEffect;
+	private Grayscale cameraEffect;
 
 	private static SessionManager instance;
 	private float xAvatarSize = 0.3f;
@@ -68,6 +68,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patient = GameObject.FindGameObjectWithTag("Patient");
 		patientHips = GameObject.FindGameObjectWithTag("Hips");
 		audio = GetComponent<AudioSource>();
+		cameraEffect = Camera.main.gameObject.GetComponent<Grayscale>();
+		cameraEffect.enabled = false;
 
 		//CreateObjectManager();
 		if(PlayerPrefs.HasKey("TrainingModeId")) {
