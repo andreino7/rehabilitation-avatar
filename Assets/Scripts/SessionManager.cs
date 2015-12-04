@@ -8,7 +8,7 @@ using SimpleJSON;
 
 public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
-	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel;
+	public GameObject objectPrefab, menuPanel, trainingPanel, camDisplay, helpPanel, confirmPanel;
 	public Text textHint;
 	public Material litMaterial, normalMaterial;
 	public Text labelLeft, labelRight, labelMode; 
@@ -36,6 +36,22 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected JSONNode outputData;
 
+	delegate void ConfirmDelegate();
+	private ConfirmDelegate currentDelegate;
+
+	private void ConfirmMethod(string message, ConfirmDelegate del) {
+		confirmPanel.SetActive (true);
+		currentDelegate = del;
+	}
+
+	public void ExecuteDelegate() {
+		CloseMenus ();
+		currentDelegate ();
+	}
+
+	public void CancelDelegate() {
+		ToggleMenus (confirmPanel);
+	}
 
 	private SessionManager () {}
 
@@ -327,6 +343,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public void RestartSession(){
 		CreateObjectManager();
+	}
+
+	public void ConfirmExit() {
+		ConfirmMethod ("", new ConfirmDelegate(ExitSession));
 	}
 
 	public void ExitSession() {
