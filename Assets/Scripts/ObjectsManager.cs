@@ -18,6 +18,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 	protected float allowedTime = 10f;
 
 	protected Object objectPrefab;
+	GameObject directionArrow;
 
 	protected void Start() {
 		objectPrefab = Resources.Load ("BasicObject");
@@ -29,6 +30,11 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		currentObject++;
 		SessionManager.GetInstance ().StartTimer();
 		SessionManager.GetInstance().UpdateCurrentObject(currentObject);
+
+		if(directionArrow) {
+			Destroy(directionArrow);
+		}
+
 		if (currentObject == numberOfObjects+1) {
 			SessionManager.GetInstance ().StopTimer();
 			Invoke("EndSession", 1f);
@@ -37,6 +43,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		if (getReal3D.Cluster.isMaster) {
 			Vector3 newPosition = PositionNewObject();
 			Quaternion newQuaternion = Quaternion.Euler (UnityEngine.Random.Range (0f, 360f), UnityEngine.Random.Range (0.0f, 360f), UnityEngine.Random.Range (0.0f, 360f));
+
 			MakeRPCCall(newPosition, newQuaternion);
 		}
 	}
@@ -44,7 +51,19 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 	virtual protected Vector3 PositionNewObject () { return Vector3.zero; }
 	virtual protected void MakeRPCCall (Vector3 newPosition, Quaternion newQuaternion) {}
 
+	protected void CreateOptimalTrajectory(Vector3 newPosition) {
+		if(!(SessionManager.GetInstance ().IsTrajectoryEnabled())) return;
+		Vector3 hand = SessionManager.GetInstance().GetNearestHand(newPosition);
+		directionArrow = (GameObject) GameObject.Instantiate(Resources.Load("Cube"), newPosition, Quaternion.identity);
+		directionArrow.transform.LookAt(hand);
+		directionArrow.transform.localScale = new Vector3(0.005f, 0.005f, Vector3.Distance(newPosition, hand));
+		directionArrow.transform.position = ((hand-newPosition)/2f) + newPosition;
+	}
+
 	protected void EndSession() {
+		if(directionArrow) {
+			Destroy(directionArrow);
+		}
 		SessionManager.GetInstance().EndSession();
 	//	objectsCaught = 0;
 	}
@@ -105,18 +124,11 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		}
 	}
 
-	void OnPostRender() {
-		GL.PushMatrix();
-		GL.LoadOrtho();
-		GL.Begin(GL.LINES);
-		GL.Color(Color.red);
-		GL.Vertex(Vector3.zero);
-		GL.Vertex(new Vector3(1f, 2f, 1f));
-		GL.End();
-		GL.PopMatrix();
-	}
 
 	public void CancelSession() {
+		if(directionArrow) {
+			Destroy(directionArrow);
+		}
 		Destroy (virtualObject);
 		Destroy(this);
 	}

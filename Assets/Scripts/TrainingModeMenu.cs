@@ -12,7 +12,7 @@ public class TrainingModeMenu : ScrollableMenu {
 	void Update () {
 		if (gameObject.activeSelf) {
 			base.Update();
-			if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button3) && !SessionManager.GetInstance().isTutorialMode()){
+			if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button3) && !SessionManager.GetInstance().isLastPhaseOfTutorial()){
 					if (lastButtonUpdateTime + antiBouncing < Time.time) {
 						lastButtonUpdateTime = Time.time;
 						Debug.Log(index);

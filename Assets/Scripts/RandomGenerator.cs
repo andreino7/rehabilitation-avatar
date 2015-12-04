@@ -29,6 +29,7 @@ public class RandomGenerator : ObjectsManager {
 	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
 		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
 		virtualObject.GetComponent<VirtualObject> ().manager = this;
+		CreateOptimalTrajectory(newPosition);
 		appearTime = Time.time;
 	}
 	

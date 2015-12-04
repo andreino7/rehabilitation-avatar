@@ -14,7 +14,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public Material litMaterial, normalMaterial;
 	public Text labelLeft, labelRight, labelMode, labelHelp; 
 	public GameObject sessionCompleteAnimation;
-	private bool tutorialMode = false; 
+	private bool tutorialMode = false, lastPhaseOfTutorial = false; 
 
 	private static SessionManager instance;
 	private float xAvatarSize = 0.3f;
@@ -32,6 +32,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	private ObjectsManager manager;
 
 	protected bool isTimerStopped = true;
+
+	private bool trajectoryFeedback = false;
 
 	protected JSONNode outputData;
 
@@ -60,6 +62,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public static SessionManager GetInstance () {
 		return instance;
+	}
+
+	public bool IsTrajectoryEnabled() {
+		return trajectoryFeedback;
 	}
 
 	// Use this for initialization
@@ -259,6 +265,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		wand.GetComponentsInChildren<Renderer> () [6].material = litMaterial;
 
 		yield return new WaitForSeconds (2f);
+		lastPhaseOfTutorial = true;
 		DisplayText ("Now use the arrows to select 'Training Mode' and then press 'X' again");
 		PlayAudio ("Voce00015");
 		while(!trainingPanel.activeSelf) {
@@ -281,6 +288,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		Destroy (wand);
 		patient.SetActive (true);
+		lastPhaseOfTutorial = false;
 		yield return new WaitForSeconds (1f);
 		DisplayText ("Nice! Now we'll try to open the menu using your voice!");
 		PlayAudio ("Voce00019");
@@ -323,6 +331,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			Debug.Log ("sono la courutine e chiamo manager.GetNumberOfObjectsCaught(): " +  manager.GetNumberOfObjectsCaught());
 			getReal3D.RpcManager.call("DisplayTrainingSummary", manager.GetNumberOfObjectsCaught(), manager.GetTotalElapsedTime());
 		}
+	}
+
+	public bool isLastPhaseOfTutorial() {
+		return lastPhaseOfTutorial;
 	}
 
 	[getReal3D.RPC]
@@ -372,6 +384,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "STOP": AbortSession(); break;
 			case "EXIT": ExitSession(); break;
 			case "MAP": ToggleMap(); break;
+			case "TRAJECTORY": ToggleMotionTrail(); break;
 			case "FIRST PERSON": FirstPersonMode(); break;
 			case "DISTORTED REALITY": DistortedRealityMode(); break;
 			case "THIRD PERSON": ThirdPersonMode(); break;
@@ -433,11 +446,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
 		if(script.isDistortedReality) {
 			script.isDistortedReality = false;
-			ToggleCameraEffect();
+		//	ToggleCameraEffect();
 		}
 		else {
 			script.isDistortedReality = true;
-			ToggleCameraEffect();
+		//	ToggleCameraEffect();
 		}
 		PlayAudio("Start");
 	}
@@ -459,7 +472,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	private void ToggleMenus (GameObject menu) {
-		menu.GetComponent<ScrollableMenu>().SetActivationTime(Time.time);
+		if(menu.GetComponent<ScrollableMenu>()) {
+			menu.GetComponent<ScrollableMenu>().SetActivationTime(Time.time);
+		}
 		if(menu.activeSelf) {
 			PlayAudio ("Cancel");
 			menu.SetActive(false);
@@ -564,7 +579,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		trainingPanel.SetActive(false);
 	}
 
-	private void ToggleCameraEffect() {
+/*	private void ToggleCameraEffect() {
 		Grayscale cameraEffect = Camera.main.gameObject.GetComponent<Grayscale>();
 		if(cameraEffect.enabled) {
 			cameraEffect.enabled = false;
@@ -572,6 +587,25 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		else {
 			cameraEffect.enabled = true;
 		}
+	}
+*/
+	public Vector3 GetNearestHand(Vector3 pos) {
+		FlatAvatarController controller = patient.GetComponent<FlatAvatarController>();
+		Vector3 leftHand = controller.leftHand.transform.position;
+		Vector3 rightHand = controller.rightHand.transform.position;
+		if(Vector3.Distance(leftHand, pos) > Vector3.Distance(rightHand, pos)) {
+			return rightHand;
+		}
+		return leftHand;
+	}
+
+	public void ToggleMotionTrail() {
+		trajectoryFeedback = !trajectoryFeedback;
+		FlatAvatarController controller = patient.GetComponent<FlatAvatarController>();
+		TrailRenderer left = controller.leftHand.GetComponent<TrailRenderer>();
+		TrailRenderer right = controller.rightHand.GetComponent<TrailRenderer>();
+		left.enabled = trajectoryFeedback;
+		right.enabled = trajectoryFeedback;
 	}
 
 }
