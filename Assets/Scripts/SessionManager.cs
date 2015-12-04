@@ -14,6 +14,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	public Material litMaterial, normalMaterial;
 	public Text labelLeft, labelRight, labelMode, labelHelp; 
 	public GameObject sessionCompleteAnimation;
+	public AudioSource voice;
 	private bool tutorialMode = false, lastPhaseOfTutorial = false; 
 
 	private static SessionManager instance;
@@ -34,6 +35,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	protected bool isTimerStopped = true;
 
 	private bool trajectoryFeedback = false;
+	private bool isDistortedMode = false;
 
 	protected JSONNode outputData;
 
@@ -42,12 +44,15 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private void ConfirmMethod(string message, ConfirmDelegate del) {
 		ToggleMenus(confirmPanel);
+
+		//confirmPanel.SetActive(true);
 		currentDelegate = del;
 	}
 
 	public void ExecuteDelegate() {
-		CloseMenus ();
 		currentDelegate ();
+		CloseMenus ();
+		confirmPanel.SetActive(false);
 	}
 
 	public void CancelDelegate() {
@@ -148,17 +153,28 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public void StartNewTraining(int trainingId) {
 		PlayerPrefs.SetInt("TrainingModeId", trainingId);
+		if(!manager || manager.isEnded()) {
+			StartNewTrainingConfirmed();
+		}
+		else {
+			ConfirmMethod("", StartNewTrainingConfirmed);
+		}
+	}
+
+	public void StartNewTrainingConfirmed() {
+		int trainingId = PlayerPrefs.GetInt("TrainingModeId");
 		string modeName = "";
 		switch(trainingId) {
-			case 1: modeName = "Tutorial"; break;
-			case 2: modeName = "Random Objects"; break;
-			case 3: modeName = "Progressive distance"; break;
-			case 4: modeName = "Custom training"; break;
+		case 1: modeName = "Tutorial"; break;
+		case 2: modeName = "Random Objects"; break;
+		case 3: modeName = "Progressive distance"; break;
+		case 4: modeName = "Custom training"; break;
 		}
 		CheckIfLabelNeeded();
 		PlayerPrefs.SetString("TrainingMode", modeName);
 		labelMode.text = modeName;
 		CreateObjectManager();
+		DisplayText("Please walk into the red circle");
 	}
 
 	public void CreateFirstObject() {
@@ -189,19 +205,19 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		CheckIfLabelNeeded();
 		ToggleCamDisplay();
 		DisplayText ("Welcome to the tutorial");
-		PlayAudio ("Voce00002");
+		PlayVoice ("Voce00002");
 
 		patient.SetActive (false);
 		yield return new WaitForSeconds (4f);
 
 		GameObject pat = (GameObject)GameObject.Instantiate (Resources.Load("TutorialPatient"));
 		DisplayText ("The boy on the left will represent your avatar");
-		PlayAudio ("Voce00003");
+		PlayVoice ("Voce00003");
 		yield return new WaitForSeconds (4f);
 
 		GameObject the = (GameObject)GameObject.Instantiate (Resources.Load("TutorialTherapist"));
 		DisplayText ("The skeleton on the right will represent your therapist's avatar");
-		PlayAudio ("Voce00004");
+		PlayVoice ("Voce00004");
 		yield return new WaitForSeconds (6f);
 
 		Destroy(pat);
@@ -210,14 +226,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 		DisplayText ("Now walk forward to the red circle");
 		ShowRedCircle();
-		PlayAudio ("Voce00005");
+		PlayVoice ("Voce00005");
 		yield return new WaitForSeconds (6f);
 		while (patientHips.transform.position.z < minimumZ) {
 			yield return null;
 		}
 
 		DisplayText ("This is the position you will have to maintain during your training");
-		PlayAudio ("Voce00006");
+		PlayVoice ("Voce00006");
 		yield return new WaitForSeconds (5f);
 		DisplayText ("Now let's start!");
 		//Missing audio
@@ -225,7 +241,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		HideRedCircle();
 
 		DisplayText ("Reach the ball with your rigth hand and stay in position");
-		PlayAudio ("Voce00007");
+		PlayVoice ("Voce00007");
 		UnityEngine.Object objPrefab = Resources.Load ("BasicObject");
 		GameObject obj1 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (0.8f, 1.5f, patientHips.transform.position.z + 0.1f), Quaternion.identity);
 
@@ -234,7 +250,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		}
 
 		DisplayText ("Great! Now do the same with your left hand");
-		PlayAudio ("Voce00008");
+		PlayVoice ("Voce00008");
 		GameObject obj2 = (GameObject)GameObject.Instantiate (objPrefab, new Vector3 (-0.8f, 1.5f, patientHips.transform.position.z + 0.1f), Quaternion.identity);
 
 		while(obj2 != null) {
@@ -246,7 +262,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		GameObject vfx = (GameObject) GameObject.Instantiate (sessionCompleteAnimation, patientHips.transform.position, Quaternion.identity);
 		yield return new WaitForSeconds (4f);
 		patient.SetActive (false);
-		PlayAudio ("Voce00010");
+		PlayVoice ("Voce00010");
 		DisplayText ("Good job! Now you'll learn how to open the menu");
 		yield return new WaitForSeconds (5f);
 		UnityEngine.Object wandPrefab = Resources.Load ("wand");
@@ -255,7 +271,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		wand.GetComponentsInChildren<Renderer> () [0].material = litMaterial;
 
 		DisplayText ("Press the 'X' button on the wand controller");
-		PlayAudio ("Voce00014");
+		PlayVoice ("Voce00014");
 		while(!menuPanel.activeSelf) {
 			yield return null;
 		}
@@ -267,7 +283,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		yield return new WaitForSeconds (2f);
 		lastPhaseOfTutorial = true;
 		DisplayText ("Now use the arrows to select 'Training Mode' and then press 'X' again");
-		PlayAudio ("Voce00015");
+		PlayVoice ("Voce00015");
 		while(!trainingPanel.activeSelf) {
 			yield return null;
 		}
@@ -275,12 +291,12 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		wand.GetComponentsInChildren<Renderer> () [6].material = normalMaterial;
 		yield return new WaitForSeconds (1f);
 		DisplayText ("From here you can select which training mode to start.");
-		PlayAudio ("Voce00016");
+		PlayVoice ("Voce00016");
 		yield return new WaitForSeconds (6f);
 
 		wand.GetComponentsInChildren<Renderer> () [1].material = litMaterial;
 		DisplayText ("Now press two times the 'O' button on the wand controller to exit the menu.");
-		PlayAudio ("Voce00017");
+		PlayVoice ("Voce00017");
 		while(trainingPanel.activeSelf || menuPanel.activeSelf) {
 			yield return null;
 		}
@@ -291,18 +307,18 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		lastPhaseOfTutorial = false;
 		yield return new WaitForSeconds (1f);
 		DisplayText ("Nice! Now we'll try to open the menu using your voice!");
-		PlayAudio ("Voce00019");
+		PlayVoice ("Voce00019");
 		yield return new WaitForSeconds (5f);
 
 		DisplayText ("Say aloud the word 'menu' and the menu will appear.");
-		PlayAudio ("Voce00020");
+		PlayVoice ("Voce00020");
 		while(!menuPanel.activeSelf) {
 			yield return null;
 		}
 		yield return new WaitForSeconds (1f);
 		DisplayText ("Good job! Your training is complete");
 		ToggleCamDisplay();
-		PlayAudio ("Voce00021");
+		PlayVoice ("Voce00021");
 		yield return new WaitForSeconds (3f);
 		DisplayText ("");
 		tutorialMode = false;
@@ -347,6 +363,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		audio.Play ();
 	}
 
+	public void PlayVoice(string name) {
+		voice.clip = (AudioClip) Resources.Load ("Audio/" + name);
+		voice.Play ();
+	}
+
 	private void ChangeScene(){
 		getReal3D.RpcManager.call("ChangeSceneRPC");
 	}
@@ -358,6 +379,15 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	
 
 	public void RestartSession(){
+		if(!manager || manager.isEnded()) {
+			RestartConfirmed();
+		}
+		else {
+			ConfirmMethod ("", new ConfirmDelegate(RestartConfirmed));
+		}
+	}
+
+	public void RestartConfirmed() {
 		CreateObjectManager();
 	}
 
@@ -446,13 +476,16 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
 		if(script.isDistortedReality) {
 			script.isDistortedReality = false;
+			isDistortedMode = false;
 		//	ToggleCameraEffect();
 		}
 		else {
 			script.isDistortedReality = true;
+			isDistortedMode = true;
 		//	ToggleCameraEffect();
 		}
 		PlayAudio("Start");
+		RegenerateLabelMode();
 	}
 
 
@@ -472,6 +505,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	private void ToggleMenus (GameObject menu) {
+		Debug.Log (menu);
 		if(menu.GetComponent<ScrollableMenu>()) {
 			menu.GetComponent<ScrollableMenu>().SetActivationTime(Time.time);
 		}
@@ -606,6 +640,22 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		TrailRenderer right = controller.rightHand.GetComponent<TrailRenderer>();
 		left.enabled = trajectoryFeedback;
 		right.enabled = trajectoryFeedback;
+		PlayAudio("Start");
+		RegenerateLabelMode();
+	}
+
+	private void RegenerateLabelMode() {
+		string text = PlayerPrefs.GetString("TrainingMode") + "\n";
+		if(trajectoryFeedback) {
+			text += "Trajectory";
+		}
+		if(isDistortedMode) {
+			text += (trajectoryFeedback ? " + " : "") + "Distorsion";
+		}
+		if(trajectoryFeedback ^ isDistortedMode) {
+			text += " enabled";
+		}
+		labelMode.text = text;
 	}
 
 }

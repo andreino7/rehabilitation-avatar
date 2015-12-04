@@ -32,5 +32,14 @@ public class RandomGenerator : ObjectsManager {
 		CreateOptimalTrajectory(newPosition);
 		appearTime = Time.time;
 	}
+
+	public override void ClearTrajectories() {
+		getReal3D.RpcManager.call("ClearTrajectoriesRPC");
+	}
+
+	[getReal3D.RPC]
+	protected void ClearTrajectoriesRPC() {
+		Destroy(directionArrow);
+	}
 	
 }

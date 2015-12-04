@@ -19,6 +19,7 @@ public class ConfirmationMenu : ScrollableMenu {
 					index = 1;
 				}
 				UpdateGraphics();
+
 			}
 		} else if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.ButtonLeft)){
 			if (lastButtonUpdateTime + antiBouncing < Time.time) {

@@ -33,7 +33,17 @@ public class CustomGenerator : ObjectsManager {
 	private void CreateNewObjectRPC (Vector3 newPosition, Quaternion newQuaternion) {
 		virtualObject = (GameObject) GameObject.Instantiate (objectPrefab, newPosition, newQuaternion);
 		virtualObject.GetComponent<VirtualObject> ().manager = this;
+		CreateOptimalTrajectory(newPosition);
 		appearTime = Time.time;
 	}
+
+	public override void ClearTrajectories() {
+		getReal3D.RpcManager.call("ClearTrajectoriesRPC");
+	}
 	
+	[getReal3D.RPC]
+	protected void ClearTrajectoriesRPC() {
+		Destroy(directionArrow);
+	}
+
 }

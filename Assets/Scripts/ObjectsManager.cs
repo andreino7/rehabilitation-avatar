@@ -18,7 +18,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 	protected float allowedTime = 10f;
 
 	protected Object objectPrefab;
-	GameObject directionArrow;
+	protected GameObject directionArrow;
 
 	protected void Start() {
 		objectPrefab = Resources.Load ("BasicObject");
@@ -32,7 +32,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		SessionManager.GetInstance().UpdateCurrentObject(currentObject);
 
 		if(directionArrow) {
-			Destroy(directionArrow);
+			ClearTrajectories();
 		}
 
 		if (currentObject == numberOfObjects+1) {
@@ -50,6 +50,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	virtual protected Vector3 PositionNewObject () { return Vector3.zero; }
 	virtual protected void MakeRPCCall (Vector3 newPosition, Quaternion newQuaternion) {}
+	virtual public void ClearTrajectories(){}
 
 	protected void CreateOptimalTrajectory(Vector3 newPosition) {
 		if(!(SessionManager.GetInstance ().IsTrajectoryEnabled())) return;
@@ -62,7 +63,7 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected void EndSession() {
 		if(directionArrow) {
-			Destroy(directionArrow);
+			ClearTrajectories();
 		}
 		SessionManager.GetInstance().EndSession();
 	//	objectsCaught = 0;
@@ -124,10 +125,13 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 		}
 	}
 
+	public bool isEnded() {
+		return currentObject >= numberOfObjects;
+	}
 
 	public void CancelSession() {
 		if(directionArrow) {
-			Destroy(directionArrow);
+			ClearTrajectories();
 		}
 		Destroy (virtualObject);
 		Destroy(this);
