@@ -6,11 +6,12 @@ using SimpleJSON;
 
 public class FlatAvatarController : OmicronEventClient {
 
-	static public JSONNode outputData;
-	static public JSONArray positions = new JSONArray();
+	protected float samplingRate = 5f;
+	protected JSONArray positions = new JSONArray();
 
 	public bool isThirdPerson = true;
 	public bool isPatient = false;
+	public bool isDistortedReality;
 
 	public float yOffset = 0.6f, zOffset = 2.5f;
 	private float lastUpdate, timeout = 0.1f;
@@ -41,9 +42,6 @@ public class FlatAvatarController : OmicronEventClient {
 		OmicronManager omicronManager = GameObject.FindGameObjectWithTag("OmicronManager").GetComponent<OmicronManager>();
 		omicronManager.AddClient(this);
 		if(isPatient) {
-			outputData = new JSONClass();
-			outputData["patientId"] = PlayerPrefs.GetString("PatientId");
-			outputData["trainingId"] = PlayerPrefs.GetString("TrainingModeId");
 			StartCoroutine(LogPositionsCoroutine());
 		}
 	}
@@ -85,7 +83,6 @@ public class FlatAvatarController : OmicronEventClient {
 		}
 
 		int sourceId = (int)e.sourceId;
-
 		if(bodyId != sourceId) {
 			return;
 		}
@@ -95,28 +92,49 @@ public class FlatAvatarController : OmicronEventClient {
 
 		verticalMultiplier = verticalDistance / GetJointPosition(e, 1).y;*/
 
-		UpdateHipsPosition (e);
+		if (!isDistortedReality) {
+			UpdateHipsPosition (e);
+			UpdateJointPosition (leftElbow, e, 7);
+			UpdateJointPosition (rightElbow, e, 17);
+				
+			UpdateJointPosition (leftHand, e, 9);
+			UpdateJointPosition (rightHand, e, 19);
 
-		UpdateJointPosition (leftElbow, e, 7);
-		UpdateJointPosition (rightElbow, e, 17);
+			UpdateJointPosition (leftShoulder, e, 6); //, new Vector3(-0.1f, -0.1f, 0f));
+			UpdateJointPosition (rightShoulder, e, 16); //, new Vector3(0.1f, -0.1f, 0f));
+			leftHandState = FetchHandState(e.orw);
+			rightHandState = FetchHandState(e.orx);
+			
+			UpdateJointPosition (leftHip, e, 11);
+			UpdateJointPosition (rightHip, e, 21);
+			
+			UpdateJointPosition (leftKnee, e, 12);
+			UpdateJointPosition (rightKnee, e, 22);
+			
+			UpdateJointPosition (leftFoot, e, 13);
+			UpdateJointPosition (rightFoot, e, 23);
+		} else {
+			UpdateHipsPositionDistorted(e);
+			UpdateJointPositionDistorted (leftElbow, e, 17);
+			UpdateJointPositionDistorted (rightElbow, e, 7);
+			
+			UpdateJointPositionDistorted (leftHand, e, 19);
+			UpdateJointPositionDistorted (rightHand, e, 9);
+			
+			UpdateJointPositionDistorted (leftShoulder, e, 16); //, new Vector3(-0.1f, -0.1f, 0f));
+			UpdateJointPositionDistorted (rightShoulder, e, 6);
 
-		UpdateJointPosition (leftHand, e, 9);
-		UpdateJointPosition (rightHand, e, 19);
+			UpdateJointPositionDistorted (leftHip, e, 21);
+			UpdateJointPositionDistorted (rightHip, e, 11);
+			
+			UpdateJointPositionDistorted (leftKnee, e, 22);
+			UpdateJointPositionDistorted (rightKnee, e, 12);
+			
+			UpdateJointPositionDistorted (leftFoot, e, 23);
+			UpdateJointPositionDistorted (rightFoot, e, 13);
+		}
 
-		UpdateJointPosition (leftShoulder, e, 6); //, new Vector3(-0.1f, -0.1f, 0f));
-		UpdateJointPosition (rightShoulder, e, 16); //, new Vector3(0.1f, -0.1f, 0f));
 
-		leftHandState = FetchHandState(e.orw);
-		rightHandState = FetchHandState(e.orx);
-
-		UpdateJointPosition (leftHip, e, 11);
-		UpdateJointPosition (rightHip, e, 21);
-
-		UpdateJointPosition (leftKnee, e, 12);
-		UpdateJointPosition (rightKnee, e, 22);
-
-		UpdateJointPosition (leftFoot, e, 13);
-		UpdateJointPosition (rightFoot, e, 23);
 
 
 		//UpdateJointPosition (leftFinger, e, 10);
@@ -133,6 +151,14 @@ public class FlatAvatarController : OmicronEventClient {
 		}
 	}
 
+	private void UpdateJointPositionDistorted(GameObject joint, EventData e, int jointId, Vector3 optionalOffset = default(Vector3)) {
+		Vector3 newPosition = GetJointPosition(e, jointId);
+		newPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z);
+		if(!newPosition.Equals(Vector3.zero)) {
+			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f)) + optionalOffset;
+		}
+	}
+
 	private void UpdateHipsPosition(EventData e) {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
@@ -140,9 +166,16 @@ public class FlatAvatarController : OmicronEventClient {
 		}
 	}
 
+	private void UpdateHipsPositionDistorted(EventData e) {
+		Vector3 newPosition = GetJointPosition(e, 0);
+		if(!newPosition.Equals(Vector3.zero)) {
+			hips.transform.localPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f));
+		}
+	}
+
 	IEnumerator LogPositionsCoroutine() {
-		while(!SessionManager.isTimerStopped) {
-			yield return new WaitForSeconds(0.05f);
+		while(!SessionManager.GetInstance().IsTimerStopped()) {
+			yield return new WaitForSeconds(1f / samplingRate);
 			JSONNode newPos = new JSONClass();
 			newPos["time"].AsFloat = Time.time;
 
@@ -150,11 +183,32 @@ public class FlatAvatarController : OmicronEventClient {
 			leftHandPos[0].AsFloat = leftHand.transform.position.x;
 			leftHandPos[1].AsFloat = leftHand.transform.position.y;
 			leftHandPos[2].AsFloat = leftHand.transform.position.z;
-
 			newPos["leftHand"] = leftHandPos;
+
+			JSONArray rightHandPos = new JSONArray();
+			rightHandPos[0].AsFloat = rightHand.transform.position.x;
+			rightHandPos[1].AsFloat = rightHand.transform.position.y;
+			rightHandPos[2].AsFloat = rightHand.transform.position.z;
+			newPos["rightHand"] = rightHandPos;
+
+			JSONArray leftElbowPos = new JSONArray();
+			leftElbowPos[0].AsFloat = leftElbow.transform.position.x;
+			leftElbowPos[1].AsFloat = leftElbow.transform.position.y;
+			leftElbowPos[2].AsFloat = leftElbow.transform.position.z;
+			newPos["leftElbow"] = leftElbowPos;
+			
+			JSONArray rightElbowPos = new JSONArray();
+			rightElbowPos[0].AsFloat = rightElbow.transform.position.x;
+			rightElbowPos[1].AsFloat = rightElbow.transform.position.y;
+			rightElbowPos[2].AsFloat = rightElbow.transform.position.z;
+			newPos["rightElbow"] = rightElbowPos;
 
 			positions.Add(newPos);
 		}
+	}
+
+	public JSONArray GetPositionsLog() {
+		return positions;
 	}
 
 	private void KillAvatar() {
@@ -162,6 +216,13 @@ public class FlatAvatarController : OmicronEventClient {
 		kinectManager.RemoveBody(bodyId);
 		Destroy(gameObject);
 	}
+
+	private void KillPatient() {
+		SetFlaggedForRemoval();
+		kinectManager.RemoveBody(bodyId);
+		//Destroy(gameObject);
+	}
+
 
 
 	void LateUpdate() {
@@ -172,8 +233,10 @@ public class FlatAvatarController : OmicronEventClient {
 		if (Time.time > lastUpdate + timeout) {
 			if(!isPatient) {
 				KillAvatar();
-			} else {
+			} else if (bodyId != -1) {
+				KillPatient();
 				bodyId = -1;
+				gameObject.SetActive(false);
 			}
 		}
 	}

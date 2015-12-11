@@ -3,6 +3,7 @@ using System.Collections;
 
 public class VirtualObject : MonoBehaviour {
 
+	public ObjectsManager manager;
 	public Material defaultMaterial, triggerMaterial;
 	public GameObject animationVfx;
 	private float animationTime = 1.4f;
@@ -10,6 +11,7 @@ public class VirtualObject : MonoBehaviour {
 	private float scaleMultiplier = 3f;
 	private Vector3 originalScale;
 	private bool isCaught;
+	private float caughtTime;
 
 	void Start () {
 		originalScale = transform.localScale;
@@ -37,10 +39,11 @@ public class VirtualObject : MonoBehaviour {
 	void ObjectCaught() {
 		if (!isCaught) {
 			Debug.Log ("Object caught!!");
-			SessionManager.isTimerStopped = true;
+			SessionManager.GetInstance ().StopTimer();
 			GetComponent<AudioSource> ().Play ();
 			StartCoroutine (ObjectCaughtCoroutine ());
 			isCaught = true;
+			caughtTime = Time.time;
 			GameObject.Instantiate (animationVfx, transform.position, Quaternion.identity);
 		}
 	}
@@ -62,7 +65,9 @@ public class VirtualObject : MonoBehaviour {
 				Mathf.Lerp(scaleMultiplier * originalScale.z, 0f, (Time.time - startTime) / (animationTime / 2f)));
 			yield return null;
 		}
-		SessionManager.GetInstance().CreateNewObject();
+		if(manager != null) {
+			manager.ObjectCaught(caughtTime);
+		}
 		Destroy (gameObject);
 	}
 }
