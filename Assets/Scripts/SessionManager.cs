@@ -79,11 +79,13 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		patientHips = GameObject.FindGameObjectWithTag("Hips");
 		audio = GetComponent<AudioSource>();
 
+
 		//CreateObjectManager();
 		if(PlayerPrefs.HasKey("TrainingModeId")) {
 			StartNewTraining(PlayerPrefs.GetInt("TrainingModeId"));
 		}
 
+	//	StartNewTraining(1);
 	}
 
 	public bool isTutorialMode () {
@@ -174,7 +176,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		PlayerPrefs.SetString("TrainingMode", modeName);
 		labelMode.text = modeName;
 		CreateObjectManager();
-		DisplayText("Please walk into the red circle");
+		if (modeName != "Tutorial") {
+			DisplayText("Please walk into the red circle");
+		}
 	}
 
 	public void CreateFirstObject() {
@@ -334,7 +338,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		PlayerPrefs.SetFloat ("TotalTime", elapsedTime);
 		if (getReal3D.Cluster.isMaster) {
 			string filePath = FinalizeLogFile ();
-			//SendMail(filePath);
+			SendMail(filePath);
 		}
 	}
 
@@ -559,7 +563,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		client.Host = "smtp.mail.com";
 		client.Credentials = (System.Net.ICredentialsByHost) new System.Net.NetworkCredential("rehabilitation-avatar@mail.com", "password" );
 		mail.Subject = "New training log for patient " + PlayerPrefs.GetString("PatientId");
-		mail.Body = "The training log file is attached to this email.";
+		mail.Body = "The training log file for patient " + PlayerPrefs.GetString("PatientId") + ", relative to session \"" + PlayerPrefs.GetString("TrainingMode") + "\" performed on date " + (DateTime.Now).ToString() + ", is attached to this email.";
 		client.Send(mail);
 	}
 
