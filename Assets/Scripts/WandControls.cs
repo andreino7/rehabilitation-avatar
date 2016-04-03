@@ -12,7 +12,8 @@ public class WandControls : MonoBehaviour {
 		if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button5)){
 			if (lastButtonUpdateTime + antiBouncing < Time.time) {
 				lastButtonUpdateTime = Time.time;
-				SessionManager.GetInstance().DistortedRealityMode();
+				//SessionManager.GetInstance().DistortedRealityMode();
+				SessionManager.GetInstance().FirstPersonMode();
 			}
 		}
 

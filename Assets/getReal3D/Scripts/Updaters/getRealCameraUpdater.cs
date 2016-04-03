@@ -12,10 +12,6 @@ using getReal3D;
 public class getRealCameraUpdater
     : MonoBehaviour
 {
-
-	public float yOffset = 0f, zOffset = 0f;
-	public float angleOffset = 0f;
-
     private Transform m_transform;
     private Camera m_camera;
 
@@ -128,7 +124,7 @@ public class getRealCameraUpdater
 
     void Update()
     {
-        //if(!updateOnPreCull)
+        if(!updateOnPreCull)
             UpdateCamera();
     }
 
@@ -142,13 +138,10 @@ public class getRealCameraUpdater
     {
         if(m_pluginInitialized) {
             if(applyHeadPosition) {
-				m_transform.localPosition = getReal3D.Input.GetCameraSensor((uint) cameraIndex).position + new Vector3(0f, yOffset, zOffset);
-				//Debug.Log(m_transform.localPosition);
+                m_transform.localPosition = getReal3D.Input.GetCameraSensor((uint) cameraIndex).position;
             }
             if(applyHeadRotation) {
                 m_transform.localRotation = getReal3D.Input.GetCameraSensor((uint) cameraIndex).rotation;
-				m_transform.Rotate(angleOffset, 0f, 0f);
-
             }
             if(applyCameraProjection) {
                 m_camera.projectionMatrix = getReal3D.Input.GetCameraProjection((uint) cameraIndex, m_mainFarClip, m_mainNearClip);

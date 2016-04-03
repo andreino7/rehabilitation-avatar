@@ -147,7 +147,7 @@ public class FlatAvatarController : OmicronEventClient {
 	private void UpdateJointPosition(GameObject joint, EventData e, int jointId, Vector3 optionalOffset = default(Vector3)) {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f)) + optionalOffset;
+			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, zOffset) + optionalOffset;
 		}
 	}
 
@@ -155,21 +155,21 @@ public class FlatAvatarController : OmicronEventClient {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		newPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f)) + optionalOffset;
+			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, zOffset) + optionalOffset;
 		}
 	}
 
 	private void UpdateHipsPosition(EventData e) {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
-			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f));
+			hips.transform.localPosition = new Vector3(newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, zOffset);
 		}
 	}
 
 	private void UpdateHipsPositionDistorted(EventData e) {
 		Vector3 newPosition = GetJointPosition(e, 0);
 		if(!newPosition.Equals(Vector3.zero)) {
-			hips.transform.localPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, (isThirdPerson ? zOffset : 0f));
+			hips.transform.localPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z) + new Vector3(0f, yOffset, zOffset);
 		}
 	}
 
