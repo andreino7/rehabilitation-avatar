@@ -13,14 +13,17 @@ public class WandControls : MonoBehaviour {
 			if (lastButtonUpdateTime + antiBouncing < Time.time) {
 				lastButtonUpdateTime = Time.time;
 				//SessionManager.GetInstance().DistortedRealityMode();
-				SessionManager.GetInstance().FirstPersonMode();
+				SessionManager.GetInstance().DistortedRealityMode();
 			}
-		}
-
-		if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button7)){
+		} else if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.Button7)){
 			if (lastButtonUpdateTime + antiBouncing < Time.time) {
 				lastButtonUpdateTime = Time.time;
 				SessionManager.GetInstance().ToggleHelpPanel();
+			}
+		} else if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.ButtonRight)){
+			if (lastButtonUpdateTime + antiBouncing < Time.time) {
+				lastButtonUpdateTime = Time.time;
+				SessionManager.GetInstance().ChangePerspective();
 			}
 		}
 	}

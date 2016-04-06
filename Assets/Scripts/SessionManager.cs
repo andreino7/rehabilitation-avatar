@@ -19,12 +19,14 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private static SessionManager instance;
 	private float xAvatarSize = 0.3f;
-
+	private bool patientInsideCircle;
 	private float elapsedTime = 0f;
 	private GameObject patient, patientHips;
 	private float lastButtonUpdateTime;
 	private float antiBouncing = 0.4f;
 	private float minimumZ = 4.6f;
+
+	public float bodyOffset = 4.6f;
 
 	private GameObject redCircle;
 
@@ -92,10 +94,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public IEnumerator StartCountdown() {
 		ShowRedCircle();
-		while (patientHips.transform.position.z < minimumZ) {
+		while (!patientInsideCircle) {
 			yield return null;
 		}
-		HideRedCircle();
+		//HideRedCircle();
+		patientInsideCircle = false;
 		for(int i=5; i>0; i--) {
 			DisplayText (".. " + i + " ..");
 			PlayAudio("Countdown");
@@ -110,7 +113,9 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	private void ShowRedCircle() {
 		if(redCircle == null) {
+			FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
 			redCircle = (GameObject) GameObject.Instantiate(Resources.Load("RedCircle"));
+			redCircle.transform.position = new Vector3(redCircle.transform.position.x, redCircle.transform.position.y, redCircle.transform.position.z - (script.IsThirdPerson() ? 0f : bodyOffset));
 		}
 	}
 
@@ -466,11 +471,24 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		trainingPanel.SetActive(true);
 	}
 
+	public void ChangePerspective() {
+		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
+		if(script.IsThirdPerson()) {
+			FirstPersonMode();
+		} else {
+			ThirdPersonMode();
+		}
+
+	}
+
 	public void FirstPersonMode() {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
-		script.isThirdPerson = false;
-		patientHips.transform.localScale = new Vector3(0f, 0f, 0f);
-
+		script.SetFirstPerson();
+		//patientHips.transform.localScale = new Vector3(0f, 0f, 0f);
+		GameObject[] basicObjects = GameObject.FindGameObjectsWithTag("BasicObject");
+		foreach(GameObject g in basicObjects) {
+			g.transform.position = new Vector3(g.transform.position.x, g.transform.position.y, g.transform.position.z - bodyOffset);
+		}
 	}
 	public void DistortedRealityMode() {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
@@ -491,8 +509,12 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 
 	public void ThirdPersonMode() {
 		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
-		script.isThirdPerson = true;
-		patientHips.transform.localScale = new Vector3(1.3f, 1f, 1f);
+		script.SetThirdPerson();
+		GameObject[] basicObjects = GameObject.FindGameObjectsWithTag("BasicObject");
+		foreach(GameObject g in basicObjects) {
+			g.transform.position = new Vector3(g.transform.position.x, g.transform.position.y, g.transform.position.z + bodyOffset);
+		}
+		//patientHips.transform.localScale = new Vector3(1.3f, 1f, 1f);
 	}
 
 	public void ToggleCamDisplay() {
@@ -529,7 +551,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	public Vector3 GetPatientPosition() {
-		return patientHips.transform.position;
+		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
+		return patientHips.transform.position - new Vector3(0f, 0f, script.IsThirdPerson() ? 0f : bodyOffset);
 	}
 
 	public void RestartTimer() {
@@ -656,6 +679,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			text += " enabled";
 		}
 		labelMode.text = text;
+	}
+
+	public void PatientInPosition() {
+		patientInsideCircle = true;
 	}
 
 }

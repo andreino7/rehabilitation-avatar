@@ -22,7 +22,6 @@ public class ObjectsManager : getReal3D.MonoBehaviourWithRpc {
 
 	protected void Start() {
 		objectPrefab = Resources.Load ("BasicObject");
-		Debug.Log (objectPrefab);
 
 	}
 

@@ -9,9 +9,12 @@ public class FlatAvatarController : OmicronEventClient {
 	protected float samplingRate = 5f;
 	protected JSONArray positions = new JSONArray();
 
-	public bool isThirdPerson = true;
+	private bool isThirdPerson = true;
 	public bool isPatient = false;
 	public bool isDistortedReality;
+
+	public GameObject protoGuyBody, protoGuyHead;
+	public GameObject[] bodyParts;
 
 	public float yOffset = 0.6f, zOffset = 2.5f;
 	private float lastUpdate, timeout = 0.1f;
@@ -147,7 +150,7 @@ public class FlatAvatarController : OmicronEventClient {
 	private void UpdateJointPosition(GameObject joint, EventData e, int jointId, Vector3 optionalOffset = default(Vector3)) {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, zOffset) + optionalOffset;
+			joint.transform.localPosition = newPosition + new Vector3(0f, isThirdPerson ? yOffset : 0f, isThirdPerson ? zOffset : 0f) + optionalOffset;
 		}
 	}
 
@@ -155,7 +158,7 @@ public class FlatAvatarController : OmicronEventClient {
 		Vector3 newPosition = GetJointPosition(e, jointId);
 		newPosition = new Vector3(-newPosition.x, newPosition.y, newPosition.z);
 		if(!newPosition.Equals(Vector3.zero)) {
-			joint.transform.localPosition = newPosition + new Vector3(0f, yOffset, zOffset) + optionalOffset;
+			joint.transform.localPosition = newPosition +  new Vector3(0f, isThirdPerson ? yOffset : 0f, isThirdPerson ? zOffset : 0f) + optionalOffset;
 		}
 	}
 
@@ -244,6 +247,28 @@ public class FlatAvatarController : OmicronEventClient {
 	public void SetBodyId(int newBodyId) {
 		bodyId = newBodyId;
 		lastUpdate = Time.time;
+	}
+
+	public void SetFirstPerson() {
+		isThirdPerson = false;
+		protoGuyHead.SetActive(false);
+		protoGuyBody.SetActive(false);
+		foreach(GameObject g in bodyParts) {
+			g.SetActive(true);
+		}
+	}
+
+	public void SetThirdPerson() {
+		isThirdPerson = true;
+		protoGuyHead.SetActive(true);
+		protoGuyBody.SetActive(true);
+		foreach(GameObject g in bodyParts) {
+			g.SetActive(false);
+		}
+	}
+
+	public bool IsThirdPerson() {
+		return isThirdPerson;
 	}
 
 }
