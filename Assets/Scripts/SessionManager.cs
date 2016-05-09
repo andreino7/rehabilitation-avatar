@@ -57,6 +57,10 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		confirmPanel.SetActive(false);
 	}
 
+	public bool IsConfirmVisible() {
+		return confirmPanel.activeSelf;
+	}
+
 	public void CancelDelegate() {
 		ToggleMenus(confirmPanel);
 	}
@@ -109,6 +113,11 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		DisplayText ("Session started!!");
 		yield return new WaitForSeconds(2f);
 		DisplayText ("");
+	}
+
+	public bool IsThirdPerson() {
+		FlatAvatarController script = patient.GetComponent<FlatAvatarController>();
+		return script.IsThirdPerson();
 	}
 
 	private void ShowRedCircle() {
@@ -198,7 +207,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 	}
 
 	private void UpdateTime() {
-		labelRight.text = "Time: " + (Time.time-elapsedTime);
+		labelRight.text = "Time: " + Math.Floor((Time.time-elapsedTime) * 10) / 10 ;
 	}
 
 	public void UpdateCurrentObject(int objectNumber) {
@@ -233,7 +242,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		ShowRedCircle();
 		PlayVoice ("Voce00005");
 		yield return new WaitForSeconds (6f);
-		while (patientHips.transform.position.z < minimumZ) {
+		while (!patientInsideCircle) {
 			yield return null;
 		}
 
@@ -417,7 +426,7 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "RESTART": case "START": Invoke("RestartSession", 1f); break;
 			case "MENU": case "OPEN MENU": ToggleMenu(); break;
 			case "STOP": AbortSession(); break;
-			case "EXIT": ExitSession(); break;
+			case "EXIT": ConfirmExit(); break;
 			case "MAP": ToggleMap(); break;
 			case "TRAJECTORY": ToggleMotionTrail(); break;
 			case "FIRST PERSON": FirstPersonMode(); break;
@@ -430,6 +439,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			case "TUTORIAL": StartNewTraining(1); break;
 			case "CUSTOM TRAINING": StartNewTraining(4); break;
 			case "HELP": ToggleHelpPanel(); break;
+			case "YES": VoiceYes(); break;
+			case "NO": VoiceNo(); break;
 		}
 	}
 
@@ -442,6 +453,18 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 			PlayAudio ("Cancel");
 			menuPanel.SetActive(false);
 			trainingPanel.SetActive(false);
+		}
+	}
+
+	private void VoiceYes() {
+		if(confirmPanel.activeSelf) {
+			ExecuteDelegate();
+		}
+	}
+
+	private void VoiceNo() {
+		if(confirmPanel.activeSelf) {
+			CancelDelegate();
 		}
 	}
 
@@ -505,6 +528,8 @@ public class SessionManager : getReal3D.MonoBehaviourWithRpc {
 		PlayAudio("Start");
 		RegenerateLabelMode();
 	}
+
+
 
 
 	public void ThirdPersonMode() {

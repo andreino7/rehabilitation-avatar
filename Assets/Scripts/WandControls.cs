@@ -20,7 +20,7 @@ public class WandControls : MonoBehaviour {
 				lastButtonUpdateTime = Time.time;
 				SessionManager.GetInstance().ToggleHelpPanel();
 			}
-		} else if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.ButtonRight)){
+		} else if(CAVE2Manager.GetButtonDown(1,CAVE2Manager.Button.ButtonRight) && !SessionManager.GetInstance().IsConfirmVisible()){
 			if (lastButtonUpdateTime + antiBouncing < Time.time) {
 				lastButtonUpdateTime = Time.time;
 				SessionManager.GetInstance().ChangePerspective();

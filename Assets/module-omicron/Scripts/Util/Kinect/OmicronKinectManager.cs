@@ -63,7 +63,7 @@ public class OmicronKinectManager : OmicronEventClient {
 	void OnEvent( EventData e ) {
 		if (enableBodyTracking && e.serviceType == EventBase.ServiceType.ServiceTypeMocap ) {
 			int sourceID = (int)e.sourceId;
-			if(sourceID > 1000) {
+			Debug.Log("OnEvent Mocap "+sourceID);
 				float[] jointPosition = new float[3];
 				e.getExtraDataVector3(0, jointPosition);
 				if( !trackedBodies.ContainsKey (sourceID)) {
@@ -80,7 +80,6 @@ public class OmicronKinectManager : OmicronEventClient {
 				if(patientController.bodyId == -1) {
 					UpdatePatientBody();
 				}
-			}
 		} else if (enableSpeechRecognition && e.serviceType == EventBase.ServiceType.ServiceTypeSpeech) {
 			string speechString = e.getExtraDataString();
 			float speechConfidence = e.posx;
